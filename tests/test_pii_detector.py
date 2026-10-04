@@ -1,4 +1,4 @@
-﻿import pytest
+import pytest
 from semantic_firewall.core.agents.pii_detector import PIIDetectorAgent
 
 @pytest.fixture
@@ -117,7 +117,7 @@ class TestPIISeverity:
         assert result.severity == "CRITICAL"
 
     def test_single_email_is_low_or_medium(self, agent):
-        result = agent.run("email: test@example.com")
+        result = agent.run("email: alice.sharma@company.org")
         assert result.severity in ["LOW", "MEDIUM"]
 
     def test_clean_input_is_none(self, agent):

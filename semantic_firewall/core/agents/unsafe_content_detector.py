@@ -5,7 +5,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 
-from semantic_firewall.core.agents.llm_client import DetectorLLMClient, extract_json_object
+from semantic_firewall.core.agents.llm_client import DEFAULT_LLM_MODEL, DetectorLLMClient, extract_json_object
 
 load_dotenv()
 
@@ -31,13 +31,22 @@ class DetectionResult:
 
 
 class UnsafeContentDetectorAgent:
+    # The orchestrator may call run(..., use_llm=False) for a regex-only pre-screen.
+    supports_regex_only = True
+
     def __init__(self):
         self.name = "Unsafe Content Detector"
-        default_model = os.getenv("SEMANTIC_FIREWALL_UNSAFE_MODEL_FAST", "llama-3.3-70b-versatile")
+        default_model = os.getenv("SEMANTIC_FIREWALL_UNSAFE_MODEL_FAST", DEFAULT_LLM_MODEL)
         self.llm_client = DetectorLLMClient(default_model=default_model)
         self.model = self.llm_client.model_name
         self.confidence_threshold = 0.5
         self.regex_confidence = 0.80
+        # Off = pure LLM detector (used for the "LLM agents only" baseline).
+        self.regex_enabled = os.getenv("SEMANTIC_FIREWALL_LLM_AGENT_REGEX_ENABLED", "1").lower() in {
+            "1",
+            "true",
+            "yes",
+        }
 
         self.quick_patterns: dict[str, tuple[str, str, int]] = {
             "explicit_violence": (
@@ -378,13 +387,28 @@ CRITICAL NEGATIVE CONSTRAINTS (What NOT to flag):
 
         return final
 
-    def run(self, text: str, confidence_threshold_override: float | None = None) -> DetectionResult:
+    def run(
+        self,
+        text: str,
+        confidence_threshold_override: float | None = None,
+        use_llm: bool = True,
+    ) -> DetectionResult:
         effective_threshold = self.confidence_threshold
         if confidence_threshold_override is not None:
             effective_threshold = max(0.0, min(1.0, float(confidence_threshold_override)))
 
-        regex_matches = self._regex_prescreen(text)
-        llm_matches, llm_meta = self._llm_detect(text, confidence_threshold=effective_threshold)
+        regex_matches = self._regex_prescreen(text) if self.regex_enabled else []
+        if use_llm:
+            llm_matches, llm_meta = self._llm_detect(text, confidence_threshold=effective_threshold)
+        else:
+            llm_matches = []
+            llm_meta = {
+                "llm_called": False,
+                "llm_provider": self.llm_client.provider,
+                "llm_model": self.llm_client.model_name,
+                "llm_skipped_reason": "regex_prescreen_only",
+                "llm_parse_status": "not_attempted",
+            }
         matched = self._deduplicate(regex_matches, llm_matches)
 
         severity = self._calculate_severity(matched)

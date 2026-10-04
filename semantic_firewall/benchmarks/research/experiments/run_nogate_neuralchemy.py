@@ -84,9 +84,6 @@ def main():
     print(f"  F1             : {format_pct(metrics['f1'])}")
     print(f"  FPR            : {format_pct(metrics['false_positive_rate'])}")
 
-    print_section("Comparison: With Gate vs Without Gate (same 40 samples)")
-    print(f"  With LLM Gate (threshold=1.0) : R={14.3:.1f}%, F1={24.5:.1f}%  (prev run, 100 samples)")
-    print(f"  Without LLM Gate (threshold=0) : R={metrics['recall']*100:.1f}%, F1={metrics['f1']*100:.1f}%  (this run, {len(test_set)} samples)")
 
     out_dir = RESULTS_ROOT / "baselines"
     write_json(out_dir / "baseline_nogate_neuralchemy.json", {
@@ -101,7 +98,6 @@ def main():
 
     header = ["config", "dataset", "samples", "precision", "recall", "f1", "fpr"]
     rows = [
-        ["with_gate_1.0", "neuralchemy", 100, 0.857, 0.143, 0.245, 0.017],
         ["no_gate_0.0", "neuralchemy", len(test_set),
          round(metrics["precision"], 4), round(metrics["recall"], 4),
          round(metrics["f1"], 4), round(metrics["false_positive_rate"], 4)],

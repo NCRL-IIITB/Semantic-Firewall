@@ -1,0 +1,85 @@
+{
+  "n": 942,
+  "n_attack": 552,
+  "tp": 106,
+  "fp": 2,
+  "tn": 388,
+  "fn": 446,
+  "precision": 0.9814814814814815,
+  "recall": 0.19202898550724637,
+  "f1": 0.32121212121212117,
+  "accuracy": 0.524416135881104,
+  "fpr": 0.005128205128205128,
+  "fnr": 0.8079710144927537,
+  "f1_ci95": [
+    0.27564811610144185,
+    0.36445014245014246
+  ],
+  "fpr_ci95": [
+    0.0,
+    0.01329875886524823
+  ],
+  "recall_ci95": [
+    0.1604226371613437,
+    0.22359210045604577
+  ],
+  "latency_mean_ms": 138.58645753715498,
+  "latency_p50_ms": 97.6885,
+  "latency_p95_ms": 272.6299000000001,
+  "latency_p99_ms": 340.7647500000003,
+  "resolution_stage_counts": {
+    "deterministic": 834,
+    "semantic_cache": 108
+  },
+  "llm_call_rate": 0.0,
+  "n_llm_failed": 0,
+  "n_errors": 0,
+  "config": {
+    "name": "cache_only",
+    "description": "Semantic cache only (misses are allowed).",
+    "uses_llm": false
+  },
+  "protocol": {
+    "dataset": "neuralchemy",
+    "split": "test",
+    "cache": "warm_frozen",
+    "seeded_entries": 2650,
+    "cache_size_after": 2650,
+    "cache_stats": {
+      "threat_queries": 942,
+      "threat_hits": 108,
+      "allowlist_queries": 942,
+      "allowlist_hits": 0,
+      "writes": 0,
+      "writes_rejected": 0,
+      "evictions": 0
+    },
+    "workers": 1
+  },
+  "env": {
+    "SEMANTIC_FIREWALL_CACHE_TTL_SEC": "0",
+    "SEMANTIC_FIREWALL_AUDIT_ENABLED": "0",
+    "SEMANTIC_FIREWALL_DISABLE_LLM_DETECTORS": "1",
+    "SEMANTIC_FIREWALL_LLM_GATE_ENABLED": "1",
+    "SEMANTIC_FIREWALL_LLM_GATE_THRESHOLD": "1.0",
+    "SEMANTIC_FIREWALL_EARLY_EXIT_ON_BLOCK": "1",
+    "SEMANTIC_FIREWALL_DISABLED_AGENTS": "Context Flooding Detector,PII Detector,Secrets Detector,Abuse Detector,Injection Detector,Unsafe Content Detector,Threat Intel Detector,Custom Rules Detector",
+    "SEMANTIC_FIREWALL_SEMANTIC_CACHE_ENABLED": "1",
+    "SEMANTIC_FIREWALL_CACHE_SIM_THRESHOLD": "0.90",
+    "SEMANTIC_FIREWALL_CACHE_WRITEBACK": "0",
+    "SEMANTIC_FIREWALL_CACHE_WRITEBACK_REQUIRE_LLM": "1",
+    "SEMANTIC_FIREWALL_CACHE_WRITEBACK_MIN_CONFIDENCE": "0.85",
+    "SEMANTIC_FIREWALL_LLM_AGENT_REGEX_ENABLED": "1",
+    "SEMANTIC_FIREWALL_ENSEMBLE_ENABLED": "1",
+    "SEMANTIC_FIREWALL_ALLOWLIST_MODE": "skip_llm",
+    "SEMANTIC_FIREWALL_SEMANTIC_CACHE_PATH": "C:\\Users\\Aksha\\OneDrive\\Desktop\\Semantic-Firewall-main\\Semantic-Firewall-main\\semantic_firewall\\benchmarks\\research\\results_camera_ready\\_work\\caches\\neuralchemy-test-cache_only-warm_frozen"
+  },
+  "meta": {
+    "timestamp_utc": "2026-10-04T12:16:23.529579+00:00",
+    "python": "3.13.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "cpu_count": 18,
+    "code_fingerprint": "8b9fc4f1c9fb0c9e"
+  }
+}

@@ -6,6 +6,10 @@ from typing import Any
 from openai import OpenAI
 
 
+# OpenRouter model ID of the LLM gate (Llama-3.3-70B-Instruct).
+DEFAULT_LLM_MODEL = "meta-llama/llama-3.3-70b-instruct"
+
+
 @dataclass
 class LLMResponse:
     content: str
@@ -13,15 +17,20 @@ class LLMResponse:
 
 
 class DetectorLLMClient:
-    """Small provider wrapper for semantic detector LLM calls."""
+    """Small provider wrapper for semantic detector LLM calls (OpenRouter, OpenAI-compatible)."""
 
-    def __init__(self, default_model: str):
+    def __init__(self, default_model: str = DEFAULT_LLM_MODEL):
         self.model = os.getenv("SEMANTIC_FIREWALL_LLM_MODEL", default_model).strip() or default_model
         self.provider = "openrouter"
+        # JSON mode asks the provider to constrain decoding to a JSON object; off by
+        # default because not every OpenRouter backend supports response_format.
+        self.json_mode = os.getenv("SEMANTIC_FIREWALL_LLM_JSON_MODE", "0").strip().lower() in {"1", "true", "yes"}
+        timeout = float(os.getenv("SEMANTIC_FIREWALL_LLM_TIMEOUT_SEC", "30"))
         api_key = os.getenv("OPENROUTER_API_KEY", "").strip()
         self._client = OpenAI(
             base_url="https://openrouter.ai/api/v1",
             api_key=api_key,
+            timeout=timeout,
         ) if api_key else None
 
     @property
@@ -48,6 +57,7 @@ class DetectorLLMClient:
         if self._client is None:
             raise RuntimeError("OPENROUTER_API_KEY is not configured")
 
+        extra = {"response_format": {"type": "json_object"}} if self.json_mode else {}
         response = self._client.chat.completions.create(
             model=self.model,
             messages=[
@@ -56,10 +66,11 @@ class DetectorLLMClient:
             ],
             temperature=0.0,
             max_tokens=max_tokens,
+            **extra,
         )
         return LLMResponse(
-            content=response.choices[0].message.content.strip(),
-            meta={"llm_provider": self.provider, "llm_model": self.model},
+            content=(response.choices[0].message.content or "").strip(),
+            meta={"llm_provider": self.provider, "llm_model": self.model, "llm_json_mode": self.json_mode},
         )
 
 

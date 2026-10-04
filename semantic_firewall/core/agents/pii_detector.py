@@ -244,6 +244,23 @@ class PIIDetectorAgent:
             except re.error as e:
                 print(f"[PIIDetector] Failed to compile pattern '{pii_type}': {e}")
 
+    # Lower rank = more specific. Generic numeric patterns rank last so they never
+    # relabel a value that a structured pattern (card, IBAN, phone) also matched.
+    _SPECIFICITY_ORDER = (
+        "email", "upi_id", "iban", "ifsc_code", "pan_card", "voter_id", "passport_india",
+        "driving_license_india", "vehicle_reg_india", "health_id_india",
+        "credit_card_visa", "credit_card_mastercard", "credit_card_amex", "credit_card_generic",
+        "cvv", "ssn_us", "aadhaar", "phone_india", "phone_uk", "phone_us", "nhs_uk",
+        "bank_account_india", "account_number", "mac_address", "ipv6", "ipv4",
+        "date_of_birth", "coordinates", "phone_generic", "zipcode_us", "pincode_india",
+    )
+
+    def _specificity(self, pii_type: str) -> int:
+        try:
+            return self._SPECIFICITY_ORDER.index(pii_type)
+        except ValueError:
+            return len(self._SPECIFICITY_ORDER)
+
     def _truncate_text(self, text: str, max_length: int) -> Tuple[str, bool]:
         """Truncate text if it exceeds max length."""
         if len(text) > max_length:
@@ -351,16 +368,15 @@ class PIIDetectorAgent:
                 print(f"[PIIDetector] Error scanning pattern '{pii_type}': {e}")
                 continue  # skip malformed patterns gracefully
 
-        # Deduplication: remove duplicate values
-        deduped: List[PIIMatch] = []
-        seen_values: Set[str] = set()
+        # Deduplication: when several patterns match the same value, keep the most
+        # specific type (e.g. a 16-digit card beats the generic phone pattern).
+        best: Dict[str, PIIMatch] = {}
         for match in matched:
             normalized_value = match.value.strip().lower()
-            if normalized_value in seen_values:
-                continue
-            seen_values.add(normalized_value)
-            deduped.append(match)
-        matched = deduped
+            current = best.get(normalized_value)
+            if current is None or self._specificity(match.pii_type) < self._specificity(current.pii_type):
+                best[normalized_value] = match
+        matched = list(best.values())
 
         severity = self._calculate_severity(matched)
         threat_found = len(matched) > 0

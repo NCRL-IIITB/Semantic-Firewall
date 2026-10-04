@@ -1,4 +1,4 @@
-﻿from unittest import result
+from unittest import result
 
 import pytest
 from semantic_firewall.core.agents.secrets_detector import SecretsDetectorAgent
@@ -13,7 +13,7 @@ def agent():
 class TestSecretsTruePositives:
 
     def test_detects_aws_access_key(self, agent):
-        result = agent.run("AWS key: AKIAIOSFODNN7EXAMPLE")
+        result = agent.run("AWS key: AKIA4HQRL7W2X9PZT3MN")
         assert result.threat_found is True
         types = [m.secret_type for m in result.matched]
         assert "aws_access_key" in types
@@ -121,7 +121,7 @@ class TestSecretsTrueNegatives:
 class TestSecretsSeverity:
 
     def test_aws_key_is_critical(self, agent):
-        result = agent.run("AKIAIOSFODNN7EXAMPLE")
+        result = agent.run("AKIA4HQRL7W2X9PZT3MN")
         assert result.severity == "CRITICAL"
 
     def test_rsa_private_key_is_critical(self, agent):
@@ -142,8 +142,8 @@ class TestSecretsSeverity:
 class TestSecretsRedact:
 
     def test_redacts_aws_key(self, agent):
-        redacted = agent.redact("Key: AKIAIOSFODNN7EXAMPLE")
-        assert "AKIAIOSFODNN7EXAMPLE" not in redacted
+        redacted = agent.redact("Key: AKIA4HQRL7W2X9PZT3MN")
+        assert "AKIA4HQRL7W2X9PZT3MN" not in redacted
         assert "[AWS_ACCESS_KEY]" in redacted
 
     def test_redacts_password(self, agent):
@@ -159,7 +159,7 @@ class TestSecretsRedact:
 class TestSecretsConfidence:
 
     def test_aws_key_confidence_is_present(self, agent):
-        result = agent.run("AWS key: AKIAIOSFODNN7EXAMPLE")
+        result = agent.run("AWS key: AKIA4HQRL7W2X9PZT3MN")
         aws_match = next(match for match in result.matched if match.secret_type == "aws_access_key")
         assert 0.9 <= aws_match.confidence <= 1.0
 
@@ -172,13 +172,18 @@ class TestSecretsEdgeCases:
         result = agent.run("")
         assert result.threat_found is False
 
+    def test_aws_documentation_example_key_is_ignored(self, agent):
+        # AWS's published example key appears in docs and tutorials; it is excluded on purpose.
+        result = agent.run("AWS key: AKIAIOSFODNN7EXAMPLE")
+        assert "aws_access_key" not in [m.secret_type for m in result.matched]
+
     def test_partial_key_no_match(self, agent):
         result = agent.run("AKIA123")  # too short to match AWS key
         assert result.threat_found is False
 
     def test_multiple_secrets(self, agent):
         result = agent.run(
-            "AWS: AKIAIOSFODNN7EXAMPLE\n"
+            "AWS: AKIA4HQRL7W2X9PZT3MN\n"
             "GitHub: ghp_aBcDeFgHiJkLmNoPqRsTuVwXyZ1234567890ab"
         )
         assert result.threat_found is True
