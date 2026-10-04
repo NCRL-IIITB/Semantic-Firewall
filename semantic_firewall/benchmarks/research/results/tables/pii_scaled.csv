@@ -1,8 +1,0 @@
-metric,value
-num_samples,93160
-true_positives,90059
-false_positives,14839
-false_negatives,3101
-precision,0.8585
-recall,0.9667
-f1,0.9095

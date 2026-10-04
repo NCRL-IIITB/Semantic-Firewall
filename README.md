@@ -16,10 +16,10 @@
 
 The firewall implements a rigorous defense-in-depth pipeline consisting of four cascading layers:
 
-1. **Deterministic Regex Engine:** Immediately blocks known structural signatures, dropping trivial payloads with $O(1)$ latency.
-2. **Self-Healing Semantic Cache:** A ChromaDB vector database ($\tau=0.90$) that auto-updates when novel threats are detected, blocking future semantic variants instantly.
-3. **Parallel Heuristic Detectors:** 8 concurrent, stateless heuristic agents evaluating prompts for PII, Secrets, DoS limits, and Abuse.
-4. **Constrained LLM Gate:** A strictly constrained Llama-3.3-70B model forced to output deterministic JSON classification schemas. Only zero-day, highly complex prompts ever reach this stage.
+1. **Semantic memory:** a ChromaDB vector cache (all-MiniLM-L6-v2, cosine). Prompts within similarity τ of a confirmed threat are blocked; an admin allowlist holds approved false positives. Write-back is limited to LLM-confirmed, high-confidence detections, and the cache is size-capped.
+2. **Deterministic stage:** regex pre-screens (injection, unsafe content, threat-intel signatures) run in parallel with the PII, secrets, abuse, context-flooding and custom-rule detectors. If this stage already blocks, the LLM is not called.
+3. **LLM stage:** Llama-3.3-70B-Instruct (via OpenRouter, temperature 0) returns a JSON verdict from the injection and unsafe-content agents. It runs only for prompts the earlier stages did not resolve, and fails closed if unavailable.
+4. **Policy and explainability:** per-detector policy actions (ALLOW/FLAG/REDACT/BLOCK) with ensemble escalation, configurable profiles, redaction, audit logging and human-readable explanations.
 
 ---
 
@@ -32,8 +32,8 @@ The firewall implements a rigorous defense-in-depth pipeline consisting of four 
 
 ```bash
 # 1. Clone the repository
-git clone https://github.com/NCRL-IIITB/Semantic_Firewall.git
-cd Semantic_Firewall
+git clone https://github.com/NCRL-IIITB/Semantic-Firewall.git
+cd Semantic-Firewall
 
 # 2. Install dependencies
 pip install -r requirements.txt
@@ -44,16 +44,19 @@ cp .env.example .env
 ```
 
 ### Running Benchmarks
-All benchmark datasets evaluated in the paper are located in the `data/` directory.
+Datasets are downloaded from Hugging Face on first use. The evaluation protocol and all scripts are described in
+[`semantic_firewall/benchmarks/research/README.md`](semantic_firewall/benchmarks/research/README.md).
 
 ```bash
-# Run the large-scale evaluation on the neuralchemy dataset
-python scripts/evaluate.py --dataset neuralchemy --config full_pipeline
+cd semantic_firewall/benchmarks/research/camera_ready
 
-# Run the baseline ablation study
-python scripts/evaluate.py --dataset neuralchemy --config regex_only
-python scripts/evaluate.py --dataset neuralchemy --config cache_only
-python scripts/evaluate.py --dataset neuralchemy --config llm_only
+# Full pipeline on the neuralchemy test split (warm cache seeded from the train split only)
+python run_system.py --config full --split test --cache warm_frozen
+
+# Ablations
+python run_system.py --config regex_only --split test --cache none
+python run_system.py --config cache_only --split test --cache warm_frozen
+python run_system.py --config llm_agents_only --split test --cache none
 ```
 
 ---

@@ -1,3 +1,0 @@
-configuration,llm_invoked,regex_only,api_savings_pct,avg_latency_ms,f1,precision,recall
-with_gate,0,942,100.0,728.3,0.5279,0.8814,0.3768
-without_gate,312,630,0.0,6335.62,0.9106,0.9081,0.913

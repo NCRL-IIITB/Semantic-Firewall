@@ -2,7 +2,6 @@ $ErrorActionPreference = "Stop"
 
 $scripts = @(
     "semantic_firewall\benchmarks\research\experiments\15_multidataset_eval.py",
-    "semantic_firewall\benchmarks\research\experiments\16_threshold_sensitivity.py",
     "semantic_firewall\benchmarks\research\experiments\05_unsafe_scaled.py --num-samples 2000",
     "semantic_firewall\benchmarks\research\experiments\07d_ablation_config9.py",
     "semantic_firewall\benchmarks\research\experiments\17_clean_latency.py"

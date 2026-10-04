@@ -1,6 +1,0 @@
-configuration,sample_count,accuracy,precision,recall,f1,fpr,fnr,delta_f1_vs_full,avg_latency_ms,notes
-full_system,500,0.864,0.9316,0.8814,0.9058,0.186,0.1186,0.0,847.32,hf_dataset
-no_llm_gate,500,0.718,0.9323,0.6685,0.7789,0.1395,0.3315,-0.1269,142.67,hf_dataset
-no_semantic_cache,500,0.826,0.9176,0.841,0.8777,0.2171,0.159,-0.0281,2341.88,hf_dataset
-no_ensemble,500,0.792,0.8985,0.8113,0.8527,0.2636,0.1887,-0.0531,4127.53,hf_dataset
-regex_only,500,0.568,0.933,0.4501,0.6071,0.093,0.5499,-0.2987,38.41,hf_dataset

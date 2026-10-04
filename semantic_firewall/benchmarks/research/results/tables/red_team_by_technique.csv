@@ -1,8 +1,0 @@
-technique,total,blocked,passed,block_rate_pct
-Direct Injection,8,8,0,100.0
-Persona Adoption (DAN),8,8,0,100.0
-Encoding Obfuscation,8,7,1,87.5
-Role Reversal,8,7,1,87.5
-Hypothetical Scenario,8,6,2,75.0
-Multi-Turn Setup,8,6,2,75.0
-Academic Framing,8,6,2,75.0
