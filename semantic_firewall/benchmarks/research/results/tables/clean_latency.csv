@@ -1,9 +1,0 @@
-Configuration,Median (ms),Mean (ms),Min (ms),Max (ms),Std (ms),Valid Samples,Rate Limited
-Config 1: Raw LLM Gate Only,1982.4,1994.45,1859.1,2174.37,107.91,10,0
-Config 2: Regex Only,1881.9,1901.01,1761.68,2062.72,95.23,10,0
-Config 3: Semantic Cache Only,1945.81,1956.25,1823.33,2147.29,96.74,10,0
-Config 4: Parallel Detectors Only,3941.3,4617.87,1946.76,10427.85,2521.57,8,0
-Config 5: Regex + Cache,2042.06,2035.07,1945.12,2162.11,72.41,10,0
-Config 6: Regex + Parallel Detectors,2107.04,2846.98,1794.47,4917.99,1192.62,10,0
-Config 7: All Fast Layers (No LLM),2114.51,2773.4,1944.99,5534.91,1168.26,10,0
-Config 8: Full System,2051.05,2000.99,1770.94,2127.19,132.41,10,0

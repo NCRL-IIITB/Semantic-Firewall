@@ -61,8 +61,8 @@ def fresh_firewall_with_gate(gate_model: str):
     os.environ["SEMANTIC_FIREWALL_LLM_GATE_THRESHOLD"] = "1.0"
     os.environ["SEMANTIC_FIREWALL_SIMILAR_CACHE_ENABLED"] = "1"
     os.environ["SEMANTIC_FIREWALL_ENSEMBLE_ENABLED"] = "1"
-    # Override the model used for the LLM gate
-    os.environ["OPENROUTER_MODEL"] = gate_model
+    # Override the model used for the LLM gate (read by DetectorLLMClient).
+    os.environ["SEMANTIC_FIREWALL_LLM_MODEL"] = gate_model
 
     fw = Firewall()
     # Clear cache for fair comparison

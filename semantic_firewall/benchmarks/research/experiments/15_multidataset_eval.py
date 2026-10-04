@@ -6,7 +6,7 @@ multiple HuggingFace datasets used by Llama Guard:
 1. allenai/xstest (for False Positives / Over-refusal)
 2. PKU-Alignment/BeaverTails (for Safety Classification)
 
-Uses published baselines for Llama Guard to save API credits.
+Llama Guard results on the same datasets come from 18_llamaguard_crossdataset.py.
 """
 import os
 import sys
@@ -157,17 +157,13 @@ def main():
     header = ["dataset", "model", "sample_count", "accuracy", "precision", "recall", "f1", "avg_latency_ms", "fpr"]
     rows = []
     
-    # XSTest Firewall
+    # Llama Guard numbers come from 18_llamaguard_crossdataset.py.
     fpr_xs = m_xs['fp'] / max((m_xs['fp'] + m_xs['tn']), 1)
-    rows.append(["xstest", "semantic_firewall_warm", eval_xs, round(m_xs["accuracy"], 4), round(m_xs["precision"], 4), round(m_xs["recall"], 4), round(m_xs["f1"], 4), round(lat_xs, 2), round(fpr_xs, 4)])
-    # XSTest Llama Guard (Published Baseline ~ 18.2% FPR, F1 ~ 65%)
-    rows.append(["xstest", "llama_guard_published", 10000, 0.78, 0.65, 0.65, 0.65, 1200.00, 0.1820])
-    
-    # BeaverTails Firewall
+    if eval_xs:
+        rows.append(["xstest", "semantic_firewall_warm", eval_xs, round(m_xs["accuracy"], 4), round(m_xs["precision"], 4), round(m_xs["recall"], 4), round(m_xs["f1"], 4), round(lat_xs, 2), round(fpr_xs, 4)])
+
     fpr_bv = m_bv['fp'] / max((m_bv['fp'] + m_bv['tn']), 1)
     rows.append(["beavertails", "semantic_firewall_warm", eval_bv, round(m_bv["accuracy"], 4), round(m_bv["precision"], 4), round(m_bv["recall"], 4), round(m_bv["f1"], 4), round(lat_bv, 2), round(fpr_bv, 4)])
-    # BeaverTails Llama Guard (Published Baseline F1 ~ 82%)
-    rows.append(["beavertails", "llama_guard_published", 10000, 0.85, 0.81, 0.83, 0.82, 1200.00, 0.05])
         
     write_csv_rows(TABLES_DIR / "multidataset_comparison.csv", rows, header)
     print("Experiment 15 complete!")

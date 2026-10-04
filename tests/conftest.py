@@ -9,8 +9,13 @@ import pytest
 
 def pytest_configure():
     os.environ["GROQ_API_KEY"] = ""
+    os.environ["OPENROUTER_API_KEY"] = ""
     os.environ["SEMANTIC_FIREWALL_DISABLE_LLM_DETECTORS"] = "0"
     os.environ["SEMANTIC_FIREWALL_LLM_GATE_ENABLED"] = "0"
+    # Never read or write the repository's persistent semantic cache from tests.
+    os.environ["SEMANTIC_FIREWALL_SEMANTIC_CACHE_PATH"] = str(
+        Path(__file__).resolve().parent / ".tmp" / "chroma_session"
+    )
 
 
 @pytest.fixture
@@ -26,6 +31,7 @@ def workspace_tmp_path():
 @pytest.fixture(autouse=True)
 def isolate_legacy_temp_artifacts(workspace_tmp_path, monkeypatch):
     monkeypatch.setenv("GROQ_API_KEY", "")
+    monkeypatch.setenv("OPENROUTER_API_KEY", "")
     monkeypatch.setenv("SEMANTIC_FIREWALL_DISABLE_LLM_DETECTORS", "0")
     monkeypatch.setenv("SEMANTIC_FIREWALL_LLM_GATE_ENABLED", "0")
 

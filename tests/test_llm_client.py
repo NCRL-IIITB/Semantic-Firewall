@@ -1,6 +1,4 @@
-﻿import json
-
-from semantic_firewall.core.agents.llm_client import DetectorLLMClient, extract_json_object
+from semantic_firewall.core.agents.llm_client import DEFAULT_LLM_MODEL, DetectorLLMClient, extract_json_object
 
 
 def test_extract_json_object_handles_thinking_prefix():
@@ -12,18 +10,18 @@ def test_extract_json_object_handles_thinking_prefix():
     assert payload == {"is_injection": True, "confidence": 0.95}
 
 
-def test_groq_provider_reports_missing_api_key(monkeypatch):
-    monkeypatch.setenv("GROQ_API_KEY", "")
+def test_openrouter_provider_reports_missing_api_key(monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "")
+    monkeypatch.delenv("SEMANTIC_FIREWALL_LLM_MODEL", raising=False)
 
-    client = DetectorLLMClient(default_model="llama-3.3-70b-versatile")
+    client = DetectorLLMClient()
 
-    assert client.provider == "groq"
+    assert client.provider == "openrouter"
+    assert client.model_name == DEFAULT_LLM_MODEL
     assert client.availability_error() == "missing_api_key"
 
 
-def test_groq_client_uses_chat_completion(monkeypatch):
-    monkeypatch.setenv("GROQ_API_KEY", "test-key")
-
+def _fake_client(captured: dict):
     class FakeResponse:
         class Choice:
             class Message:
@@ -32,8 +30,6 @@ def test_groq_client_uses_chat_completion(monkeypatch):
             message = Message()
 
         choices = [Choice()]
-
-    captured = {}
 
     class FakeChatCompletions:
         @staticmethod
@@ -44,18 +40,40 @@ def test_groq_client_uses_chat_completion(monkeypatch):
     class FakeChat:
         completions = FakeChatCompletions()
 
-    class FakeGroqClient:
+    class FakeOpenAIClient:
         chat = FakeChat()
 
-    client = DetectorLLMClient(default_model="llama-3.3-70b-versatile")
-    client._groq_client = FakeGroqClient()
+    return FakeOpenAIClient()
+
+
+def test_openrouter_client_uses_chat_completion(monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    monkeypatch.delenv("SEMANTIC_FIREWALL_LLM_MODEL", raising=False)
+    monkeypatch.delenv("SEMANTIC_FIREWALL_LLM_JSON_MODE", raising=False)
+
+    captured = {}
+    client = DetectorLLMClient()
+    client._client = _fake_client(captured)
     response = client.complete("system prompt", "user prompt", max_tokens=33)
 
-    assert captured["model"] == "llama-3.3-70b-versatile"
+    assert captured["model"] == DEFAULT_LLM_MODEL
+    assert captured["temperature"] == 0.0
     assert captured["messages"][0]["content"] == "system prompt"
     assert captured["messages"][1]["content"] == "user prompt"
     assert captured["max_tokens"] == 33
-    assert response.meta["llm_provider"] == "groq"
-    assert response.meta["llm_model"] == "llama-3.3-70b-versatile"
+    assert "response_format" not in captured
+    assert response.meta["llm_provider"] == "openrouter"
+    assert response.meta["llm_model"] == DEFAULT_LLM_MODEL
     assert response.content == '{"is_injection": true, "confidence": 0.88}'
 
+
+def test_json_mode_requests_json_object(monkeypatch):
+    monkeypatch.setenv("OPENROUTER_API_KEY", "test-key")
+    monkeypatch.setenv("SEMANTIC_FIREWALL_LLM_JSON_MODE", "1")
+
+    captured = {}
+    client = DetectorLLMClient()
+    client._client = _fake_client(captured)
+    client.complete("system prompt", "user prompt")
+
+    assert captured["response_format"] == {"type": "json_object"}

@@ -1,4 +1,0 @@
-model,sample_count,accuracy,precision,recall,f1,avg_latency_ms
-semantic_firewall_warm,1733,0.7248,0.3406,0.9144,0.4963,21890.61
-llama_guard_published,10000,0.8521,0.7011,0.7654,0.732,1200.0
-nemo_guardrails_published,10000,0.0,0.721,0.669,0.694,0.0

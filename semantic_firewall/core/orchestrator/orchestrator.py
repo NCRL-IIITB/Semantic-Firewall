@@ -62,6 +62,12 @@ class FirewallDecision:
     explanation: Optional[ExplainabilityReport] = None
     detected_patterns: List[dict] = field(default_factory=list)
     adversary_tier: str = "NONE"
+    # Where the request was resolved: exact_cache | allowlist | semantic_cache | deterministic | llm
+    resolution_stage: str = "deterministic"
+    llm_called: bool = False
+    stage_latency_ms: Dict[str, float] = field(default_factory=dict)
+    allowlist_hit: bool = False
+    semantic_similarity: Optional[float] = None
 
 
 @dataclass
@@ -88,8 +94,9 @@ class SemanticFirewallOrchestrator:
     def __init__(self, db_path: str | None = None):
         print("[Orchestrator] Initializing all agents...")
         settings = OrchestratorSettings.from_env()
+        self.settings = settings
         resolved_db_path = db_path or str(var_path("audit.db"))
-        self.agents = {
+        all_agents = {
             "Context Flooding Detector": ContextFloodingDetectorAgent(max_chars=4000),
             "PII Detector": PIIDetectorAgent(),
             "Secrets Detector": SecretsDetectorAgent(),
@@ -99,6 +106,12 @@ class SemanticFirewallOrchestrator:
             "Threat Intel Detector": ThreatIntelDetectorAgent(),
             "Custom Rules Detector": CustomRulesDetectorAgent(),
         }
+        disabled = {name.strip() for name in settings.disabled_agents.split(",") if name.strip()}
+        unknown = disabled - set(all_agents)
+        if unknown:
+            raise ValueError(f"SEMANTIC_FIREWALL_DISABLED_AGENTS has unknown agent names: {sorted(unknown)}")
+        self.agents = {name: agent for name, agent in all_agents.items() if name not in disabled}
+        self.disabled_agents = sorted(disabled)
         self.fail_closed_agents = {
             "Injection Detector",
             "Unsafe Content Detector",
@@ -211,6 +224,9 @@ class SemanticFirewallOrchestrator:
         self.llm_gate_enabled = settings.llm_gate_enabled
         self.llm_gate_threshold = settings.llm_gate_threshold
         self.disable_llm_detectors = settings.disable_llm_detectors
+        self.early_exit_on_block = settings.early_exit_on_block
+        self.allowlist_mode = settings.allowlist_mode
+        self.audit_enabled = settings.audit_enabled
         self.agent_timeouts = {
             "default": settings.agent_timeout_default_sec,
             "PII Detector": settings.agent_timeout_pii_sec,
@@ -238,7 +254,16 @@ class SemanticFirewallOrchestrator:
             injection_agent_getter=lambda: self.agents["Injection Detector"],
             action_rank=self._action_rank,
         )
-        self.semantic_cache = SemanticCache(db_path=str(var_path("chroma_db")))
+        self.semantic_cache = SemanticCache(
+            db_path=settings.semantic_cache_path or str(var_path("chroma_db")),
+            enabled=settings.semantic_cache_enabled,
+            similarity_threshold=settings.cache_similarity_threshold,
+            allowlist_threshold=settings.allowlist_similarity_threshold,
+            writeback=settings.cache_writeback,
+            writeback_require_llm=settings.cache_writeback_require_llm,
+            writeback_min_confidence=settings.cache_writeback_min_confidence,
+            max_entries=settings.cache_max_entries,
+        )
         print("[Orchestrator] All production modules ready.")
 
         print("[Orchestrator] All agents ready.\n")
@@ -352,6 +377,7 @@ class SemanticFirewallOrchestrator:
         scan_target: str = "input",
         workspace_id: str = "default",
         detector_threshold_overrides: Optional[Dict[str, Dict[str, float]]] = None,
+        llm_mode: bool = True,
     ) -> AgentResult:
         try:
             timeout_seconds = self._agent_timeout(name)
@@ -365,6 +391,7 @@ class SemanticFirewallOrchestrator:
                     scan_target,
                     workspace_id,
                     detector_threshold_overrides,
+                    llm_mode,
                 )
                 result = future.result(timeout=timeout_seconds)
             finally:
@@ -423,9 +450,12 @@ class SemanticFirewallOrchestrator:
         scan_target: str,
         workspace_id: str,
         detector_threshold_overrides: Optional[Dict[str, Dict[str, float]]] = None,
+        llm_mode: bool = True,
     ):
         detector_threshold_overrides = detector_threshold_overrides or {}
         detector_config = detector_threshold_overrides.get(name, {})
+        # Only real LLM detectors understand use_llm; test stubs and older agents do not.
+        llm_kwargs = {"use_llm": llm_mode} if getattr(agent, "supports_regex_only", False) else {}
         if name == "Custom Rules Detector":
             return agent.run(text, scan_target=scan_target, workspace_id=workspace_id)
         if name == "Threat Intel Detector":
@@ -435,11 +465,13 @@ class SemanticFirewallOrchestrator:
                 text,
                 scan_target=scan_target,
                 confidence_threshold_override=detector_config.get("confidence_threshold"),
+                **llm_kwargs,
             )
         if name == "Unsafe Content Detector":
             return agent.run(
                 text,
                 confidence_threshold_override=detector_config.get("confidence_threshold"),
+                **llm_kwargs,
             )
         return agent.run(text)
 
@@ -450,6 +482,7 @@ class SemanticFirewallOrchestrator:
         scan_target: str,
         workspace_id: str,
         detector_threshold_overrides: Optional[Dict[str, Dict[str, float]]] = None,
+        llm_mode: bool = True,
     ) -> List[AgentResult]:
         if not agent_names:
             return []
@@ -464,6 +497,7 @@ class SemanticFirewallOrchestrator:
                     scan_target,
                     workspace_id,
                     detector_threshold_overrides,
+                    llm_mode,
                 ): name
                 for name in agent_names
             }
@@ -694,17 +728,32 @@ class SemanticFirewallOrchestrator:
         session_id: Optional[str] = None,
     ) -> FirewallDecision:
         start_time = time.time()
+        stage_latency_ms: Dict[str, float] = {}
 
         if not session_id:
             cached = self._get_from_cache(text, scan_target, policy_profile, workspace_id)
             if cached:
                 print("[Orchestrator] Cache hit - skipping agent analysis")
+                cached.resolution_stage = "exact_cache"
+                cached.llm_called = False
+                cached.stage_latency_ms = {}
                 return cached
 
         print(f"[Orchestrator] Analyzing {scan_target} ({len(text)} chars)...")
-        
-        allowlist_hit = self.semantic_cache.check_allowlist(text)
-        if allowlist_hit:
+
+        # Stage 2: semantic memory. Embed once, check the allowlist, then the threat cache.
+        allowlist_hit = None
+        semantic_hit = None
+        semantic_similarity = None
+        if self.semantic_cache.enabled:
+            stage_start = time.time()
+            embedding = self.semantic_cache.embed(text)
+            allowlist_hit = self.semantic_cache.check_allowlist(text, embedding=embedding)
+            if not allowlist_hit:
+                semantic_similarity, semantic_hit = self.semantic_cache.lookup_threat(text, embedding=embedding)
+            stage_latency_ms["semantic_memory"] = (time.time() - stage_start) * 1000
+
+        if allowlist_hit and self.allowlist_mode == "bypass":
             print(f"[Orchestrator] Semantic Allowlist hit! (reason: {allowlist_hit['reason']}) Bypassing agents.")
             elapsed = (time.time() - start_time) * 1000
             decision = FirewallDecision(
@@ -718,9 +767,11 @@ class SemanticFirewallOrchestrator:
                 processing_time_ms=elapsed,
                 scan_target=scan_target,
                 adversary_tier="NONE",
+                resolution_stage="allowlist",
+                stage_latency_ms=stage_latency_ms,
+                allowlist_hit=True,
             )
-            # Log it to DB as an ALLOWLIST bypass
-            if self.audit_logger:
+            if self.audit_enabled and self.audit_logger:
                 self.audit_logger.log(
                     input_text=text,
                     action="ALLOW",
@@ -733,9 +784,10 @@ class SemanticFirewallOrchestrator:
                 )
             return decision
 
-        semantic_hit = self.semantic_cache.check_threat(text)
+        llm_called = False
         if semantic_hit:
             print(f"[Orchestrator] Semantic Cache hit! Identified as {semantic_hit['threat_type']}")
+            resolution_stage = "semantic_cache"
             agent_results = [
                 AgentResult(
                     agent_name="Semantic Cache",
@@ -751,35 +803,70 @@ class SemanticFirewallOrchestrator:
             print(f"[Orchestrator] Running all {len(self.agents)} agents in parallel...\n")
             cheap_agents = [name for name in self.agents if name not in self.llm_agents]
             llm_agents = [name for name in self.agents if name in self.llm_agents]
+            # LLM detectors that can run their regex pre-screen without calling the LLM.
+            prescreen_agents = [
+                name for name in llm_agents if getattr(self.agents[name], "supports_regex_only", False)
+            ]
             detector_threshold_overrides = self._detector_threshold_overrides(policy_profile, workspace_id=workspace_id)
+
+            # Stage 3a: deterministic detectors + regex pre-screen, in parallel, no LLM.
+            stage_start = time.time()
             cheap_results = self._run_agents_parallel(
-                cheap_agents,
+                cheap_agents + prescreen_agents,
                 text,
                 scan_target,
                 workspace_id,
                 detector_threshold_overrides=detector_threshold_overrides,
+                llm_mode=False,
             )
-            run_llm_agents, llm_gate_score = self._should_run_llm_agents(text, cheap_results)
+            stage_latency_ms["deterministic"] = (time.time() - stage_start) * 1000
+
+            deterministic_action, _, _ = self._apply_policy(
+                self._apply_allowlist(text, cheap_results, policy_profile, workspace_id=workspace_id),
+                policy_profile=policy_profile,
+                workspace_id=workspace_id,
+            )
+            if allowlist_hit:
+                run_llm_agents, llm_gate_score, skip_reason = False, 0.0, "Skipped: semantic allowlist hit."
+            elif self.early_exit_on_block and deterministic_action == "BLOCK":
+                run_llm_agents, llm_gate_score, skip_reason = False, 0.0, "Skipped: deterministic stage already blocked."
+            else:
+                run_llm_agents, llm_gate_score = self._should_run_llm_agents(text, cheap_results)
+                skip_reason = "Skipped by low-risk gate."
 
             agent_results: List[AgentResult] = list(cheap_results)
-            if run_llm_agents:
+            if run_llm_agents and llm_agents:
+                # Stage 3b: LLM-backed detectors. Their results replace the regex-only pre-screen.
+                stage_start = time.time()
                 llm_results = self._run_agents_parallel(
                     llm_agents,
                     text,
                     scan_target,
                     workspace_id,
                     detector_threshold_overrides=detector_threshold_overrides,
+                    llm_mode=True,
                 )
+                stage_latency_ms["llm"] = (time.time() - stage_start) * 1000
+                llm_called = any((result.meta or {}).get("llm_called", True) for result in llm_results)
+                agent_results = [result for result in agent_results if result.agent_name not in llm_agents]
                 agent_results.extend(llm_results)
+                resolution_stage = "llm"
             else:
-                print("[Orchestrator] LLM gate closed - skipping expensive detectors for low-risk content.")
+                resolution_stage = "deterministic"
+                print(f"[Orchestrator] LLM stage not run - {skip_reason}")
+                prescreened = set(prescreen_agents)
+                for result in agent_results:
+                    if result.agent_name in prescreened:
+                        result.meta = {**(result.meta or {}), "llm_skipped_reason": skip_reason}
                 for name in llm_agents:
+                    if name in prescreened:
+                        continue
                     skipped = AgentResult(
                         agent_name=name,
                         threat_found=False,
                         threat_type="NONE",
                         severity="NONE",
-                        summary="Skipped by low-risk gate.",
+                        summary=skip_reason,
                         matched=[],
                         agent_available=True,
                         fail_closed=False,
@@ -818,10 +905,13 @@ class SemanticFirewallOrchestrator:
 
         # Risk scoring is based on current turn results, so compute it before
         # session aggregation uses it for cross-turn tracking.
+        prior_session_score = self.session_store.get_threat_score(session_id) if session_id else 0.0
         risk_breakdown = self.risk_scorer.calculate_risk_score(
             agent_results=agent_results,
             overall_severity=overall_severity,
+            session_risk_score=prior_session_score,
             triggered_agents=triggered,
+            text_length=len(text),
         )
         risk_score = risk_breakdown.overall_score
         risk_level = risk_breakdown.risk_level
@@ -890,21 +980,22 @@ class SemanticFirewallOrchestrator:
             else text
         )
         processing_time = (time.time() - start_time) * 1000
-        audit_text = self._get_redacted_text(text, agent_results, scan_target, workspace_id=workspace_id)
 
-        self.audit_logger.log(
-            input_text=audit_text,
-            action=final_action,
-            severity=overall_severity,
-            triggered_agents=triggered,
-            reason=reason,
-            processing_time_ms=processing_time,
-            matched_threats=self._collect_matched_threats(agent_results),
-            scan_target=scan_target,
-            policy_profile=policy_profile,
-            workspace_id=workspace_id,
-            session_id=session_id,
-        )
+        if self.audit_enabled:
+            audit_text = self._get_redacted_text(text, agent_results, scan_target, workspace_id=workspace_id)
+            self.audit_logger.log(
+                input_text=audit_text,
+                action=final_action,
+                severity=overall_severity,
+                triggered_agents=triggered,
+                reason=reason,
+                processing_time_ms=processing_time,
+                matched_threats=self._collect_matched_threats(agent_results),
+                scan_target=scan_target,
+                policy_profile=policy_profile,
+                workspace_id=workspace_id,
+                session_id=session_id,
+            )
 
         adversary_tier = "NONE"
         if final_action != "ALLOW":
@@ -933,6 +1024,11 @@ class SemanticFirewallOrchestrator:
             explanation=explanation,
             detected_patterns=detected_patterns,
             adversary_tier=adversary_tier,
+            resolution_stage=resolution_stage,
+            llm_called=llm_called,
+            stage_latency_ms=stage_latency_ms,
+            allowlist_hit=bool(allowlist_hit),
+            semantic_similarity=semantic_similarity,
         )
 
         try:
@@ -966,15 +1062,25 @@ class SemanticFirewallOrchestrator:
         if not session_id:
             self._save_to_cache(text, decision, scan_target, policy_profile, workspace_id)
 
-        # Update semantic cache with any new LLM-confirmed threats
-        for res in agent_results:
-            if res.threat_found and res.agent_name in self.llm_agents and res.threat_type != "NONE":
-                self.semantic_cache.add_threat(
-                    text=text,
-                    threat_type=res.threat_type,
-                    severity=res.severity,
-                    source_agent=res.agent_name
-                )
+        # Write-back: store threats found by the LLM-backed detectors. The cache's policy
+        # decides whether the entry is persisted (LLM-confirmed, confidence floor, size cap).
+        # Detector failures (SYSTEM_UNAVAILABLE) and allowlisted prompts are never written.
+        if not allowlist_hit:
+            for res in agent_results:
+                if (
+                    res.threat_found
+                    and res.agent_name in self.llm_agents
+                    and res.threat_type not in {"NONE", "SYSTEM_UNAVAILABLE"}
+                ):
+                    meta = res.meta or {}
+                    self.semantic_cache.add_threat(
+                        text=text,
+                        threat_type=res.threat_type,
+                        severity=res.severity,
+                        source_agent=res.agent_name,
+                        confidence=self._confidence_from_result(res),
+                        llm_confirmed=int(meta.get("llm_match_count", 0) or 0) > 0,
+                    )
 
         self._print_decision(decision)
         return decision

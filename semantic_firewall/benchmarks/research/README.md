@@ -1,57 +1,46 @@
-﻿# Official Research Experiments & Results
+# Research experiments
 
-This folder contains the experiment scripts and outputs for the Semantic Firewall paper.
+## Camera-ready evaluation (use this)
 
-## Folder Structure
+`camera_ready/` holds the evaluation used for the camera-ready paper. Every script writes per-sample
+predictions, so each reported number can be recomputed from raw records under `results_camera_ready/`.
 
-```text
-semantic_firewall/benchmarks/research/
-  README.md
-  run_all_experiments.py
-  experiments/
-    01_baseline_comparison.py
-    02_ablation_study.py
-    03_latency_benchmark.py
-    04_pii_scaled.py
-    05_unsafe_scaled.py
-    06_red_team_extended.py
-    07_llm_gate_efficiency.py
-  results/
-    baselines/
-    ablation/
-    latency/
-    pii/
-    unsafe/
-    red_team/
-    llm_gate/
-    tables/
-    figures/
-```
+Protocol:
+- **Data:** neuralchemy/Prompt-injection-dataset (core) with its official splits (train 4,391 / validation 941 / test 942). The splits share no `group_id` and no identical text.
+- **Tuning:** thresholds are chosen on validation, and test is evaluated once.
+- **Cache:** every run starts from its own empty semantic cache. "Warm" means seeded with train-split attacks only, then frozen.
+- **Failures:** LLM failures are counted and reported, never silently treated as benign.
 
-## How to Run
+| Script | Purpose |
+|---|---|
+| `run_system.py` | Firewall configurations and ablations (`--config`, see `common.CONFIGS`), including leave-one-out per detector |
+| `run_baselines.py` | Zero-shot LLMs, Llama Guard 4, local classifiers (Prompt Guard 2, ProtectAI DeBERTa v2, PIGuard) on the same samples |
+| `tune_threshold.py` | Cache threshold τ sweep on validation (exact, from a frozen cache) |
+| `cache_overlap.py` | Near-duplicate analysis: results by similarity to the nearest cached train attack |
+| `significance.py` | Paired McNemar tests with Holm–Bonferroni correction, bootstrap CIs |
+| `prevalence_cost.py` | LLM-call rate, cost and p95/p99 latency at 1–50% attack prevalence; Eq. (7) path probabilities |
+| `cache_robustness.py` | Error propagation, targeted cache poisoning, allowlist abuse, cache growth/eviction (offline) |
+| `adaptive_attack.py` | Adaptive black-box attackers: rule-based mutations (offline) and a PAIR-style small open-weights attacker |
+| `pii_eval.py` | PII detector on all 209,261 ai4privacy rows and all 12 entity types (offline) |
 
-### Run everything
+Typical order:
+
 ```bash
-python semantic_firewall/benchmarks/research/run_all_experiments.py
+cd semantic_firewall/benchmarks/research/camera_ready
+python run_system.py --config no_cache --split validation --cache none
+python tune_threshold.py --split validation --downstream-run neuralchemy-validation-no_cache-none
+python run_system.py --config full --split test --cache warm_frozen --tau <selected tau>
+python run_system.py --config llm_agents_only --split test --cache none
+python run_baselines.py --kind hf --model protectai/deberta-v3-base-prompt-injection-v2
+python significance.py --reference neuralchemy-test-full-warm_frozen --compare <baseline runs...>
+python prevalence_cost.py --run neuralchemy-test-full-warm_frozen --price-per-mtok <price>
+python cache_robustness.py all
+python adaptive_attack.py --attacker rules --config full --goals 100 --budget 30
 ```
 
-### Run individual experiments
-```bash
-# Fast experiments (no API calls)
-python semantic_firewall/benchmarks/research/experiments/03_latency_benchmark.py
-python semantic_firewall/benchmarks/research/experiments/04_pii_scaled.py
+API-dependent runs need `OPENROUTER_API_KEY` in `.env`. The gate model defaults to `meta-llama/llama-3.3-70b-instruct`.
 
-# API-dependent experiments (rate-limited)
-python semantic_firewall/benchmarks/research/experiments/01_baseline_comparison.py
-python semantic_firewall/benchmarks/research/experiments/05_unsafe_scaled.py
-python semantic_firewall/benchmarks/research/experiments/06_red_team_extended.py
-```
+## Legacy experiments
 
-## Results for Paper
-
-After running, the key paper artifacts will be:
-- `semantic_firewall/benchmarks/research/results/tables/main_comparison.csv`
-- `semantic_firewall/benchmarks/research/results/tables/ablation.csv`
-- `semantic_firewall/benchmarks/research/results/tables/latency_summary.csv`
-- `semantic_firewall/benchmarks/research/results/tables/llm_gate_efficiency.csv`
-- `semantic_firewall/benchmarks/research/results/figures/`
+`experiments/` and `results/` are the scripts and raw outputs behind the submitted version.
+`results/PROVENANCE.md` records what each raw file actually measured and its caveats; read it before reusing any legacy number.

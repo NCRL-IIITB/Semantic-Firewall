@@ -123,28 +123,9 @@ class OptionalImportAdapter(ToolAdapter):
 
 
 def build_optional_market_adapters() -> list[ToolAdapter]:
-    # These are intentionally conservative wrappers because different versions
-    # of external libs have different APIs. If unavailable, adapter is skipped.
+    """Adapters for third-party guardrail libraries (LLM Guard, Rebuff, Guardrails AI).
 
-    def llm_guard_predict(text: str) -> bool:
-        # Fallback heuristic when package is present but API differs
-        import re
-
-        return bool(re.search(r"(ignore previous|system prompt|AKIA|bomb|password\s*=)", text, re.IGNORECASE))
-
-    def rebuff_predict(text: str) -> bool:
-        import re
-
-        return bool(re.search(r"(jailbreak|do anything now|override)", text, re.IGNORECASE))
-
-    def guardrails_predict(text: str) -> bool:
-        import re
-
-        return bool(re.search(r"(unsafe|harm|weapon|secret)", text, re.IGNORECASE))
-
-    return [
-        OptionalImportAdapter("LLM Guard", "llm_guard", llm_guard_predict),
-        OptionalImportAdapter("Rebuff", "rebuff", rebuff_predict),
-        OptionalImportAdapter("Guardrails AI", "guardrails", guardrails_predict),
-    ]
+    None are registered yet; add one per library that calls that library's own scanner.
+    """
+    return []
 

@@ -5,7 +5,7 @@ from typing import Any
 
 from dotenv import load_dotenv
 
-from semantic_firewall.core.agents.llm_client import DetectorLLMClient, extract_json_object
+from semantic_firewall.core.agents.llm_client import DEFAULT_LLM_MODEL, DetectorLLMClient, extract_json_object
 
 load_dotenv()
 
@@ -31,15 +31,24 @@ class DetectionResult:
 
 
 class InjectionDetectorAgent:
+    # The orchestrator may call run(..., use_llm=False) for a regex-only pre-screen.
+    supports_regex_only = True
+
     def __init__(self):
         self.name = "Injection Detector"
-        default_model = os.getenv("SEMANTIC_FIREWALL_INJECTION_MODEL_FAST", "llama-3.3-70b-versatile")
+        default_model = os.getenv("SEMANTIC_FIREWALL_INJECTION_MODEL_FAST", DEFAULT_LLM_MODEL)
         self.llm_client = DetectorLLMClient(default_model=default_model)
         self.model = self.llm_client.model_name
         self.confidence_threshold = 0.5
         self.regex_confidence = 0.85
         self.max_llm_chars = int(os.getenv("SEMANTIC_FIREWALL_INJECTION_MAX_LLM_CHARS", "3000"))
         self.skip_llm_on_regex = os.getenv("SEMANTIC_FIREWALL_INJECTION_SKIP_LLM_ON_REGEX", "0").lower() in {
+            "1",
+            "true",
+            "yes",
+        }
+        # Off = pure LLM detector (used for the "LLM agents only" baseline).
+        self.regex_enabled = os.getenv("SEMANTIC_FIREWALL_LLM_AGENT_REGEX_ENABLED", "1").lower() in {
             "1",
             "true",
             "yes",
@@ -430,13 +439,31 @@ Respond ONLY with a valid JSON object in exactly this format:
             return text[:max_length], True
         return text, False
 
-    def run(self, text: str, scan_target: str = "input", confidence_threshold_override: float | None = None) -> DetectionResult:
+    def run(
+        self,
+        text: str,
+        scan_target: str = "input",
+        confidence_threshold_override: float | None = None,
+        use_llm: bool = True,
+    ) -> DetectionResult:
         effective_threshold = self.confidence_threshold
         if confidence_threshold_override is not None:
             effective_threshold = max(0.0, min(1.0, float(confidence_threshold_override)))
 
-        regex_matches, regex_meta = self._regex_prescreen(text)
-        if self.skip_llm_on_regex and regex_matches:
+        if self.regex_enabled:
+            regex_matches, regex_meta = self._regex_prescreen(text)
+        else:
+            regex_matches, regex_meta = [], {"regex_disabled": True}
+        if not use_llm:
+            llm_matches = []
+            llm_meta = {
+                "llm_called": False,
+                "llm_provider": self.llm_client.provider,
+                "llm_model": self.llm_client.model_name,
+                "llm_skipped_reason": "regex_prescreen_only",
+                "llm_parse_status": "not_attempted",
+            }
+        elif self.skip_llm_on_regex and regex_matches:
             llm_matches = []
             llm_meta = {
                 "llm_called": False,

@@ -120,7 +120,7 @@ def run_eval_lg(test_set):
     return m, avg_lat
 
 def main():
-    print_header("EXPERIMENT 14: TOXICCHAT OOD WARM CACHE VS LLAMA GUARD (PUBLISHED BASELINE)")
+    print_header("EXPERIMENT 14: SEMANTIC FIREWALL ON TOXICCHAT")
     
     if load_dataset is None:
         raise RuntimeError("datasets package is required")
@@ -155,22 +155,15 @@ def main():
     results["semantic_firewall_warm"] = {"metrics": m, "avg_latency_ms": lat, "total": eval_count}
     print(f"\n  [Firewall] F1={format_pct(m['f1'])}, Latency={lat:.2f}ms (Evaluated {eval_count}/{len(test_set)} samples successfully)")
     
-    # 2. Evaluate Llama Guard
-    # m_lg, lat_lg = run_eval_lg(test_set)
-    # Using published baseline
-    print("\n  [LlamaGuard] Using published baseline for ToxicChat (F1=73.2%, API Latency=~1200ms)")
-    m_lg = {"accuracy": 0.8521, "precision": 0.7011, "recall": 0.7654, "f1": 0.7320, "fp": 0, "fn": 0, "tp": 0, "tn": 0}
-    lat_lg = 1200.0
-    results["llama_guard_published"] = {"metrics": m_lg, "avg_latency_ms": lat_lg, "total": 10000}
-    
+    # Llama Guard 4 on the same ToxicChat split is evaluated by 18_llamaguard_crossdataset.py.
+
     # Save JSON
     os.makedirs(RESULTS_ROOT / "ood", exist_ok=True)
     write_json(RESULTS_ROOT / "ood" / "toxicchat_comparison.json", results)
-    
+
     header = ["model", "sample_count", "accuracy", "precision", "recall", "f1", "avg_latency_ms"]
     rows = []
     rows.append(["semantic_firewall_warm", eval_count, round(m["accuracy"],4), round(m["precision"],4), round(m["recall"],4), round(m["f1"],4), round(lat,2)])
-    rows.append(["llama_guard_published", 10000, 0.8521, 0.7011, 0.7654, 0.7320, 1200.00])
     
     write_csv_rows(TABLES_DIR / "toxicchat_comparison.csv", rows, header)
     print("Experiment 14 complete!")

@@ -1,4 +1,4 @@
-﻿from pathlib import Path
+from pathlib import Path
 from uuid import uuid4
 
 from semantic_firewall.core.orchestrator.orchestrator import SemanticFirewallOrchestrator
@@ -16,7 +16,7 @@ def test_canary_injection_prompt_is_not_allow(workspace_tmp_path: Path):
 
 def test_canary_secret_prompt_is_not_allow(workspace_tmp_path: Path):
     fw = SemanticFirewallOrchestrator(db_path=_tmp_db(workspace_tmp_path, "canary_secret"))
-    decision = fw.analyze("My AWS key is AKIAIOSFODNN7EXAMPLE")
+    decision = fw.analyze("My AWS key is AKIA4HQRL7W2X9PZT3MN")
     assert decision.action in {"REDACT", "BLOCK", "FLAG"}
 
 
