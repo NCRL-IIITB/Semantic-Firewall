@@ -2,11 +2,11 @@
 
 Examples
   # main result (tau chosen on validation, see tune_threshold.py)
-  python run_system.py --config full --dataset neuralchemy --split test --cache warm_frozen --tau 0.90
+  python run_system.py --config full_all_unresolved --dataset neuralchemy --split test --cache warm_frozen --tau 0.65
   # ablation rows
   python run_system.py --config no_cache --split test
   python run_system.py --config fast_layers --split test --cache warm_frozen
-  # Reviewer 2 baseline: parallel LLM agents, no deterministic part
+  # baseline: parallel LLM agents, no deterministic part
   python run_system.py --config llm_agents_only --split test --cache none
   # per-detector leave-one-out
   python run_system.py --config "loo:PII Detector" --split test
@@ -30,11 +30,17 @@ def main():
     parser.add_argument("--cache", default="warm_frozen", choices=["cold", "warm_frozen", "warm_online", "none"],
                         help="semantic-cache protocol (ignored when the config disables the cache)")
     parser.add_argument("--tau", type=float, default=None, help="cache similarity threshold (default: settings value)")
+    parser.add_argument("--theta", type=float, default=None,
+                        help="ensemble BLOCK threshold; FLAG/REDACT scale with it (default 3.5 -> 1.8/2.6/3.5)")
     parser.add_argument("--max-samples", type=int, default=0)
     parser.add_argument("--workers", type=int, default=0,
                         help="parallel requests; default 1 (clean latency, ordered write-back) except 4 for "
                              "LLM configs with a frozen/disabled cache, where requests are network-bound")
     parser.add_argument("--run-name", default=None)
+    parser.add_argument("--profile", default="balanced",
+                        help="policy profile (balanced, strict, developer_assistant); all paper results use balanced")
+    parser.add_argument("--env", nargs="*", default=[], metavar="KEY=VALUE",
+                        help="extra SEMANTIC_FIREWALL_* settings for this run (e.g. a low-latency host for the latency run)")
     args = parser.parse_args()
 
     config = CONFIGS[args.config]
@@ -43,6 +49,14 @@ def main():
         overrides["SEMANTIC_FIREWALL_SEMANTIC_CACHE_ENABLED"] = "0"
     if args.tau is not None:
         overrides["SEMANTIC_FIREWALL_CACHE_SIM_THRESHOLD"] = str(args.tau)
+    for item in args.env:
+        key, _, value = item.partition("=")
+        overrides[key.strip()] = value.strip()
+    if args.theta is not None:
+        scale = args.theta / 3.5
+        overrides["SEMANTIC_FIREWALL_ENSEMBLE_BLOCK_THRESHOLD"] = str(round(3.5 * scale, 4))
+        overrides["SEMANTIC_FIREWALL_ENSEMBLE_REDACT_THRESHOLD"] = str(round(2.6 * scale, 4))
+        overrides["SEMANTIC_FIREWALL_ENSEMBLE_FLAG_THRESHOLD"] = str(round(1.8 * scale, 4))
     run_name = args.run_name or f"{args.dataset}-{args.split}-{args.config}-{args.cache}".replace(":", "_").replace(" ", "_")
     out_dir = RUNS_DIR / run_name
 
@@ -56,7 +70,7 @@ def main():
         try:
             from common import quiet_stdout
             with quiet_stdout():
-                decision = fw.analyze(sample["text"])
+                decision = fw.analyze(sample["text"], policy_profile=args.profile)
             record = decision_record(sample, decision, (time.perf_counter() - started) * 1000)
             record["error"] = None
         except Exception as exc:  # recorded, never silently counted as benign

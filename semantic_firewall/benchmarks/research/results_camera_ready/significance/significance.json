@@ -1,0 +1,217 @@
+{
+  "reference": "neuralchemy-test-full_all_unresolved-warm_frozen-tau0.65",
+  "comparisons": [
+    {
+      "compare": "neuralchemy-test-baseline-llm-openai__gpt-4o",
+      "n_common": 942,
+      "ref_only_correct": 94,
+      "other_only_correct": 25,
+      "chi2": 38.857142857142854,
+      "p": 4.5598236540891043e-10,
+      "test": "chi-square, continuity-corrected",
+      "ref": {
+        "precision": 0.9422066549912435,
+        "recall": 0.9746376811594203,
+        "f1": 0.9581478183437222,
+        "accuracy": 0.9501061571125266,
+        "fpr": 0.08461538461538462,
+        "fnr": 0.025362318840579712
+      },
+      "other": {
+        "precision": 0.9698275862068966,
+        "recall": 0.8152173913043478,
+        "f1": 0.8858267716535432,
+        "accuracy": 0.8768577494692145,
+        "fpr": 0.035897435897435895,
+        "fnr": 0.18478260869565216
+      },
+      "delta_f1_ci95": [
+        0.0523539111246588,
+        0.09426761836604804
+      ],
+      "delta_fpr_ci95": [
+        0.02669822006472492,
+        0.07250201612903227
+      ],
+      "p_holm": 1.3679470962267312e-09
+    },
+    {
+      "compare": "neuralchemy-test-baseline-llm-google__gemini-2.5-flash",
+      "n_common": 942,
+      "ref_only_correct": 97,
+      "other_only_correct": 25,
+      "chi2": 41.31967213114754,
+      "p": 1.292614587740962e-10,
+      "test": "chi-square, continuity-corrected",
+      "ref": {
+        "precision": 0.9422066549912435,
+        "recall": 0.9746376811594203,
+        "f1": 0.9581478183437222,
+        "accuracy": 0.9501061571125266,
+        "fpr": 0.08461538461538462,
+        "fnr": 0.025362318840579712
+      },
+      "other": {
+        "precision": 0.9696312364425163,
+        "recall": 0.8097826086956522,
+        "f1": 0.8825271470878578,
+        "accuracy": 0.8736730360934183,
+        "fpr": 0.035897435897435895,
+        "fnr": 0.19021739130434784
+      },
+      "delta_f1_ci95": [
+        0.05531932391012799,
+        0.09684677406864661
+      ],
+      "delta_fpr_ci95": [
+        0.026736994444732883,
+        0.0712631489650492
+      ],
+      "p_holm": 5.170458350963848e-10
+    },
+    {
+      "compare": "neuralchemy-test-baseline-llm-anthropic__claude-haiku-4.5",
+      "n_common": 942,
+      "ref_only_correct": 150,
+      "other_only_correct": 23,
+      "chi2": 91.76878612716763,
+      "p": 9.741904196069012e-22,
+      "test": "chi-square, continuity-corrected",
+      "ref": {
+        "precision": 0.9422066549912435,
+        "recall": 0.9746376811594203,
+        "f1": 0.9581478183437222,
+        "accuracy": 0.9501061571125266,
+        "fpr": 0.08461538461538462,
+        "fnr": 0.025362318840579712
+      },
+      "other": {
+        "precision": 0.9701492537313433,
+        "recall": 0.7065217391304348,
+        "f1": 0.8176100628930817,
+        "accuracy": 0.8152866242038217,
+        "fpr": 0.03076923076923077,
+        "fnr": 0.29347826086956524
+      },
+      "delta_f1_ci95": [
+        0.11584405229659658,
+        0.16807801589817123
+      ],
+      "delta_fpr_ci95": [
+        0.03260648639095087,
+        0.07750485588972433
+      ],
+      "p_holm": 4.8709520980345064e-21
+    },
+    {
+      "compare": "neuralchemy-test-baseline-llama_guard-meta-llama__llama-guard-4-12b",
+      "n_common": 942,
+      "ref_only_correct": 342,
+      "other_only_correct": 18,
+      "chi2": 289.8027777777778,
+      "p": 5.489455912523594e-65,
+      "test": "chi-square, continuity-corrected",
+      "ref": {
+        "precision": 0.9422066549912435,
+        "recall": 0.9746376811594203,
+        "f1": 0.9581478183437222,
+        "accuracy": 0.9501061571125266,
+        "fpr": 0.08461538461538462,
+        "fnr": 0.025362318840579712
+      },
+      "other": {
+        "precision": 0.9248826291079812,
+        "recall": 0.35688405797101447,
+        "f1": 0.5150326797385621,
+        "accuracy": 0.6061571125265393,
+        "fpr": 0.041025641025641026,
+        "fnr": 0.6431159420289855
+      },
+      "delta_f1_ci95": [
+        0.4018184161534112,
+        0.487944161069124
+      ],
+      "delta_fpr_ci95": [
+        0.023804836895388076,
+        0.06629904724320668
+      ],
+      "p_holm": 3.2936735475141567e-64
+    },
+    {
+      "compare": "neuralchemy-test-baseline-hf-protectai__deberta-v3-base-prompt-injection-v2",
+      "n_common": 942,
+      "ref_only_correct": 72,
+      "other_only_correct": 33,
+      "chi2": 13.752380952380953,
+      "p": 0.00020855630027615687,
+      "test": "chi-square, continuity-corrected",
+      "ref": {
+        "precision": 0.9422066549912435,
+        "recall": 0.9746376811594203,
+        "f1": 0.9581478183437222,
+        "accuracy": 0.9501061571125266,
+        "fpr": 0.08461538461538462,
+        "fnr": 0.025362318840579712
+      },
+      "other": {
+        "precision": 0.9774590163934426,
+        "recall": 0.8641304347826086,
+        "f1": 0.9173076923076923,
+        "accuracy": 0.9087048832271762,
+        "fpr": 0.028205128205128206,
+        "fnr": 0.1358695652173913
+      },
+      "delta_f1_ci95": [
+        0.02228842366993188,
+        0.060923913120100565
+      ],
+      "delta_fpr_ci95": [
+        0.030984463481922464,
+        0.08270722426504216
+      ],
+      "p_holm": 0.00041711260055231374
+    },
+    {
+      "compare": "neuralchemy-test-full_all_unresolved-none",
+      "n_common": 942,
+      "ref_only_correct": 35,
+      "other_only_correct": 12,
+      "chi2": 10.297872340425531,
+      "p": 0.0013318368153214172,
+      "test": "chi-square, continuity-corrected",
+      "ref": {
+        "precision": 0.9422066549912435,
+        "recall": 0.9746376811594203,
+        "f1": 0.9581478183437222,
+        "accuracy": 0.9501061571125266,
+        "fpr": 0.08461538461538462,
+        "fnr": 0.025362318840579712
+      },
+      "other": {
+        "precision": 0.9599236641221374,
+        "recall": 0.9112318840579711,
+        "f1": 0.9349442379182157,
+        "accuracy": 0.9256900212314225,
+        "fpr": 0.05384615384615385,
+        "fnr": 0.08876811594202899
+      },
+      "delta_f1_ci95": [
+        0.010751257219763574,
+        0.03546153561762248
+      ],
+      "delta_fpr_ci95": [
+        0.015345268542199489,
+        0.048850609197652925
+      ],
+      "p_holm": 0.0013318368153214172
+    }
+  ],
+  "meta": {
+    "timestamp_utc": "2026-10-05T23:43:43.242427+00:00",
+    "python": "3.13.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "cpu_count": 18,
+    "code_fingerprint": "f47372d94d53483e"
+  }
+}

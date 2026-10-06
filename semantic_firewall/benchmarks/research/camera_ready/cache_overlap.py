@@ -1,4 +1,4 @@
-"""Is the warm-cache gain just memorisation of near-duplicates? (Reviewer 3, item 1)
+"""Is the warm-cache gain just memorisation of near-duplicates?
 
 For every test prompt we compute the similarity to its nearest train-split attack (the
 warm cache) and report, per similarity bucket, how many test prompts fall there and how

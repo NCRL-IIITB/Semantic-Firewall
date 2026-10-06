@@ -94,6 +94,11 @@ class OrchestratorSettings(BaseModel):
     llm_gate_enabled: bool = True
     llm_gate_threshold: float = Field(default=1.0, ge=0.0)
     disable_llm_detectors: bool = False
+    # Levenshtein repair of typo/leetspeak keywords before keyword regexes.
+    fuzzy_keywords_enabled: bool = True
+    # Session Judge sliding window: previous user turns re-checked with the current one.
+    session_window_turns: int = Field(default=3, ge=1)
+    session_window_unsafe: bool = True
     # Skip the LLM stage when the deterministic stage already returns BLOCK.
     early_exit_on_block: bool = True
     # Comma-separated agent names to leave out (used for per-detector ablations).
@@ -102,7 +107,7 @@ class OrchestratorSettings(BaseModel):
     # Semantic memory (ChromaDB). Thresholds are cosine similarities in [0, 1].
     semantic_cache_enabled: bool = True
     semantic_cache_path: str = ""
-    cache_similarity_threshold: float = Field(default=0.90, ge=0.0, le=1.0)
+    cache_similarity_threshold: float = Field(default=0.65, ge=0.0, le=1.0)
     allowlist_similarity_threshold: float = Field(default=0.90, ge=0.0, le=1.0)
     cache_writeback: bool = True
     cache_writeback_require_llm: bool = True
@@ -145,11 +150,14 @@ class OrchestratorSettings(BaseModel):
             llm_gate_enabled=_read_bool("SEMANTIC_FIREWALL_LLM_GATE_ENABLED", True),
             llm_gate_threshold=_read_float("SEMANTIC_FIREWALL_LLM_GATE_THRESHOLD", 1.0),
             disable_llm_detectors=_read_bool("SEMANTIC_FIREWALL_DISABLE_LLM_DETECTORS", False),
+            fuzzy_keywords_enabled=_read_bool("SEMANTIC_FIREWALL_FUZZY_KEYWORDS_ENABLED", True),
+            session_window_turns=_read_int("SEMANTIC_FIREWALL_SESSION_WINDOW_TURNS", 3),
+            session_window_unsafe=_read_bool("SEMANTIC_FIREWALL_SESSION_WINDOW_UNSAFE", True),
             early_exit_on_block=_read_bool("SEMANTIC_FIREWALL_EARLY_EXIT_ON_BLOCK", True),
             disabled_agents=os.getenv("SEMANTIC_FIREWALL_DISABLED_AGENTS", ""),
             semantic_cache_enabled=_read_bool("SEMANTIC_FIREWALL_SEMANTIC_CACHE_ENABLED", True),
             semantic_cache_path=os.getenv("SEMANTIC_FIREWALL_SEMANTIC_CACHE_PATH", ""),
-            cache_similarity_threshold=_read_float("SEMANTIC_FIREWALL_CACHE_SIM_THRESHOLD", 0.90),
+            cache_similarity_threshold=_read_float("SEMANTIC_FIREWALL_CACHE_SIM_THRESHOLD", 0.65),
             allowlist_similarity_threshold=_read_float("SEMANTIC_FIREWALL_ALLOWLIST_SIM_THRESHOLD", 0.90),
             cache_writeback=_read_bool("SEMANTIC_FIREWALL_CACHE_WRITEBACK", True),
             cache_writeback_require_llm=_read_bool("SEMANTIC_FIREWALL_CACHE_WRITEBACK_REQUIRE_LLM", True),

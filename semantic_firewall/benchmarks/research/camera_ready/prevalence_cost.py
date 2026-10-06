@@ -1,4 +1,4 @@
-"""LLM-call rate, cost and tail latency at realistic attack prevalence (Reviewer 1, item 3).
+"""LLM-call rate, cost and tail latency at realistic attack prevalence.
 
 Uses the per-sample records of a firewall run (resolution stage, llm_called, latency) split
 by class, then re-weights to an attack prevalence pi:

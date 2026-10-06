@@ -1,4 +1,4 @@
-"""Paired significance tests between systems run on the same samples (Reviewer 1, item 2).
+"""Paired significance tests between systems run on the same samples.
 
 McNemar's test on the per-sample correctness of the reference system vs each comparator
 (exact binomial when there are fewer than 25 discordant pairs, otherwise chi-square with

@@ -1,0 +1,238 @@
+{
+  "reference": "neuralchemy-test-full_all_unresolved-warm_frozen-tau0.65",
+  "tau": 0.65,
+  "buckets": [
+    {
+      "range": [
+        0.0,
+        0.65
+      ],
+      "systems": {
+        "neuralchemy-test-full_all_unresolved-warm_frozen-tau0.65": {
+          "n": 495,
+          "attacks": 123,
+          "precision": 0.8790322580645161,
+          "recall": 0.8861788617886179,
+          "f1": 0.882591093117409,
+          "fpr": 0.04032258064516129
+        },
+        "neuralchemy-test-full_all_unresolved-none": {
+          "n": 495,
+          "attacks": 123,
+          "precision": 0.8790322580645161,
+          "recall": 0.8861788617886179,
+          "f1": 0.882591093117409,
+          "fpr": 0.04032258064516129
+        },
+        "neuralchemy-test-baseline-llm-openai__gpt-4o": {
+          "n": 495,
+          "attacks": 123,
+          "precision": 0.9074074074074074,
+          "recall": 0.7967479674796748,
+          "f1": 0.8484848484848484,
+          "fpr": 0.026881720430107527
+        },
+        "neuralchemy-test-baseline-llm-google__gemini-2.5-flash": {
+          "n": 495,
+          "attacks": 123,
+          "precision": 0.9038461538461539,
+          "recall": 0.7642276422764228,
+          "f1": 0.8281938325991189,
+          "fpr": 0.026881720430107527
+        },
+        "neuralchemy-test-baseline-llm-anthropic__claude-haiku-4.5": {
+          "n": 495,
+          "attacks": 123,
+          "precision": 0.9101123595505618,
+          "recall": 0.6585365853658537,
+          "f1": 0.7641509433962266,
+          "fpr": 0.021505376344086023
+        },
+        "neuralchemy-test-baseline-hf-protectai__deberta-v3-base-prompt-injection-v2": {
+          "n": 495,
+          "attacks": 123,
+          "precision": 0.9191919191919192,
+          "recall": 0.7398373983739838,
+          "f1": 0.8198198198198199,
+          "fpr": 0.021505376344086023
+        }
+      }
+    },
+    {
+      "range": [
+        0.65,
+        0.8
+      ],
+      "systems": {
+        "neuralchemy-test-full_all_unresolved-warm_frozen-tau0.65": {
+          "n": 214,
+          "attacks": 203,
+          "precision": 0.9485981308411215,
+          "recall": 1.0,
+          "f1": 0.973621103117506,
+          "fpr": 1.0
+        },
+        "neuralchemy-test-full_all_unresolved-none": {
+          "n": 214,
+          "attacks": 203,
+          "precision": 0.9787234042553191,
+          "recall": 0.9064039408866995,
+          "f1": 0.9411764705882353,
+          "fpr": 0.36363636363636365
+        },
+        "neuralchemy-test-baseline-llm-openai__gpt-4o": {
+          "n": 214,
+          "attacks": 203,
+          "precision": 0.9813664596273292,
+          "recall": 0.7783251231527094,
+          "f1": 0.8681318681318682,
+          "fpr": 0.2727272727272727
+        },
+        "neuralchemy-test-baseline-llm-google__gemini-2.5-flash": {
+          "n": 214,
+          "attacks": 203,
+          "precision": 0.9814814814814815,
+          "recall": 0.7832512315270936,
+          "f1": 0.8712328767123287,
+          "fpr": 0.2727272727272727
+        },
+        "neuralchemy-test-baseline-llm-anthropic__claude-haiku-4.5": {
+          "n": 214,
+          "attacks": 203,
+          "precision": 0.9790209790209791,
+          "recall": 0.6896551724137931,
+          "f1": 0.8092485549132948,
+          "fpr": 0.2727272727272727
+        },
+        "neuralchemy-test-baseline-hf-protectai__deberta-v3-base-prompt-injection-v2": {
+          "n": 214,
+          "attacks": 203,
+          "precision": 0.9895833333333334,
+          "recall": 0.9359605911330049,
+          "f1": 0.9620253164556962,
+          "fpr": 0.18181818181818182
+        }
+      }
+    },
+    {
+      "range": [
+        0.8,
+        0.9
+      ],
+      "systems": {
+        "neuralchemy-test-full_all_unresolved-warm_frozen-tau0.65": {
+          "n": 125,
+          "attacks": 120,
+          "precision": 0.96,
+          "recall": 1.0,
+          "f1": 0.9795918367346939,
+          "fpr": 1.0
+        },
+        "neuralchemy-test-full_all_unresolved-none": {
+          "n": 125,
+          "attacks": 120,
+          "precision": 0.9819819819819819,
+          "recall": 0.9083333333333333,
+          "f1": 0.9437229437229437,
+          "fpr": 0.4
+        },
+        "neuralchemy-test-baseline-llm-openai__gpt-4o": {
+          "n": 125,
+          "attacks": 120,
+          "precision": 0.9901960784313726,
+          "recall": 0.8416666666666667,
+          "f1": 0.9099099099099098,
+          "fpr": 0.2
+        },
+        "neuralchemy-test-baseline-llm-google__gemini-2.5-flash": {
+          "n": 125,
+          "attacks": 120,
+          "precision": 0.9900990099009901,
+          "recall": 0.8333333333333334,
+          "f1": 0.9049773755656108,
+          "fpr": 0.2
+        },
+        "neuralchemy-test-baseline-llm-anthropic__claude-haiku-4.5": {
+          "n": 125,
+          "attacks": 120,
+          "precision": 0.9882352941176471,
+          "recall": 0.7,
+          "f1": 0.8195121951219513,
+          "fpr": 0.2
+        },
+        "neuralchemy-test-baseline-hf-protectai__deberta-v3-base-prompt-injection-v2": {
+          "n": 125,
+          "attacks": 120,
+          "precision": 0.9912280701754386,
+          "recall": 0.9416666666666667,
+          "f1": 0.9658119658119658,
+          "fpr": 0.2
+        }
+      }
+    },
+    {
+      "range": [
+        0.9,
+        1.01
+      ],
+      "systems": {
+        "neuralchemy-test-full_all_unresolved-warm_frozen-tau0.65": {
+          "n": 108,
+          "attacks": 106,
+          "precision": 0.9814814814814815,
+          "recall": 1.0,
+          "f1": 0.9906542056074767,
+          "fpr": 1.0
+        },
+        "neuralchemy-test-full_all_unresolved-none": {
+          "n": 108,
+          "attacks": 106,
+          "precision": 1.0,
+          "recall": 0.9528301886792453,
+          "f1": 0.9758454106280194,
+          "fpr": 0.0
+        },
+        "neuralchemy-test-baseline-llm-openai__gpt-4o": {
+          "n": 108,
+          "attacks": 106,
+          "precision": 1.0,
+          "recall": 0.8773584905660378,
+          "f1": 0.9346733668341709,
+          "fpr": 0.0
+        },
+        "neuralchemy-test-baseline-llm-google__gemini-2.5-flash": {
+          "n": 108,
+          "attacks": 106,
+          "precision": 1.0,
+          "recall": 0.8867924528301887,
+          "f1": 0.9400000000000001,
+          "fpr": 0.0
+        },
+        "neuralchemy-test-baseline-llm-anthropic__claude-haiku-4.5": {
+          "n": 108,
+          "attacks": 106,
+          "precision": 1.0,
+          "recall": 0.8018867924528302,
+          "f1": 0.8900523560209425,
+          "fpr": 0.0
+        },
+        "neuralchemy-test-baseline-hf-protectai__deberta-v3-base-prompt-injection-v2": {
+          "n": 108,
+          "attacks": 106,
+          "precision": 1.0,
+          "recall": 0.7830188679245284,
+          "f1": 0.8783068783068783,
+          "fpr": 0.0
+        }
+      }
+    }
+  ],
+  "meta": {
+    "timestamp_utc": "2026-10-06T00:05:28.776060+00:00",
+    "python": "3.13.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "cpu_count": 18,
+    "code_fingerprint": "f47372d94d53483e"
+  }
+}

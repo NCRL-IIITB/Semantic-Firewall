@@ -1,32 +1,32 @@
 {
   "n": 942,
   "n_attack": 552,
-  "tp": 67,
+  "tp": 69,
   "fp": 4,
   "tn": 386,
-  "fn": 485,
-  "precision": 0.9436619718309859,
-  "recall": 0.1213768115942029,
-  "f1": 0.21508828250401282,
-  "accuracy": 0.48089171974522293,
+  "fn": 483,
+  "precision": 0.9452054794520548,
+  "recall": 0.125,
+  "f1": 0.2208,
+  "accuracy": 0.4830148619957537,
   "fpr": 0.010256410256410256,
-  "fnr": 0.8786231884057971,
+  "fnr": 0.875,
   "f1_ci95": [
-    0.17348280454902498,
-    0.26034339757813835
+    0.1776968254852495,
+    0.26393201532520427
   ],
   "fpr_ci95": [
-    0.002475094731695392,
-    0.020833333333333332
+    0.0025061090225563906,
+    0.021108179419525065
   ],
   "recall_ci95": [
-    0.09581745176173151,
-    0.15087884806355512
+    0.09817548365005992,
+    0.15356845327629584
   ],
-  "latency_mean_ms": 15.874852441613589,
-  "latency_p50_ms": 15.178,
-  "latency_p95_ms": 23.735650000000003,
-  "latency_p99_ms": 32.121540000000024,
+  "latency_mean_ms": 23.111478768577495,
+  "latency_p50_ms": 14.7355,
+  "latency_p95_ms": 53.967500000000015,
+  "latency_p99_ms": 166.90052000000057,
   "resolution_stage_counts": {
     "deterministic": 942
   },
@@ -53,7 +53,7 @@
       "writes_rejected": 0,
       "evictions": 0
     },
-    "workers": 4
+    "workers": 1
   },
   "env": {
     "SEMANTIC_FIREWALL_CACHE_TTL_SEC": "0",
@@ -64,21 +64,26 @@
     "SEMANTIC_FIREWALL_EARLY_EXIT_ON_BLOCK": "1",
     "SEMANTIC_FIREWALL_DISABLED_AGENTS": "Context Flooding Detector,PII Detector,Secrets Detector,Abuse Detector,Custom Rules Detector",
     "SEMANTIC_FIREWALL_SEMANTIC_CACHE_ENABLED": "0",
-    "SEMANTIC_FIREWALL_CACHE_SIM_THRESHOLD": "0.90",
+    "SEMANTIC_FIREWALL_CACHE_SIM_THRESHOLD": "0.65",
     "SEMANTIC_FIREWALL_CACHE_WRITEBACK": "1",
     "SEMANTIC_FIREWALL_CACHE_WRITEBACK_REQUIRE_LLM": "1",
     "SEMANTIC_FIREWALL_CACHE_WRITEBACK_MIN_CONFIDENCE": "0.85",
     "SEMANTIC_FIREWALL_LLM_AGENT_REGEX_ENABLED": "1",
     "SEMANTIC_FIREWALL_ENSEMBLE_ENABLED": "1",
     "SEMANTIC_FIREWALL_ALLOWLIST_MODE": "skip_llm",
+    "SEMANTIC_FIREWALL_OPENROUTER_PROVIDERS": "DeepInfra,Parasail,AkashML",
+    "SEMANTIC_FIREWALL_LLM_JSON_MODE": "1",
+    "SEMANTIC_FIREWALL_AGENT_TIMEOUT_INJECTION_SEC": "90",
+    "SEMANTIC_FIREWALL_AGENT_TIMEOUT_UNSAFE_CONTENT_SEC": "90",
+    "SEMANTIC_FIREWALL_LLM_TIMEOUT_SEC": "40",
     "SEMANTIC_FIREWALL_SEMANTIC_CACHE_PATH": "C:\\Users\\Aksha\\OneDrive\\Desktop\\Semantic-Firewall-main\\Semantic-Firewall-main\\semantic_firewall\\benchmarks\\research\\results_camera_ready\\_work\\caches\\neuralchemy-test-regex_only-none"
   },
   "meta": {
-    "timestamp_utc": "2026-10-04T12:01:51.650391+00:00",
+    "timestamp_utc": "2026-10-05T23:06:43.253011+00:00",
     "python": "3.13.7",
     "platform": "Windows-11-10.0.26200-SP0",
     "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
     "cpu_count": 18,
-    "code_fingerprint": "8b9fc4f1c9fb0c9e"
+    "code_fingerprint": "26926118cce9e4aa"
   }
 }

@@ -1,0 +1,78 @@
+{
+  "seed": 0,
+  "ood_max_similarity_to_neuralchemy": 0.9,
+  "near_duplicate_similarity": 0.95,
+  "plan": [
+    {
+      "source": "gandalf",
+      "label": 1,
+      "count": 100
+    },
+    {
+      "source": "in_the_wild_jailbreak",
+      "label": 1,
+      "count": 100
+    },
+    {
+      "source": "spml_injection",
+      "label": 1,
+      "count": 50
+    },
+    {
+      "source": "oasst2",
+      "label": 0,
+      "count": 100
+    },
+    {
+      "source": "spml_benign",
+      "label": 0,
+      "count": 75
+    },
+    {
+      "source": "xstest_safe",
+      "label": 0,
+      "count": 75
+    }
+  ],
+  "filtering": {
+    "gandalf": {
+      "pool": 979,
+      "ood_removed": 0,
+      "dup_removed": 0,
+      "selected": 100
+    },
+    "in_the_wild_jailbreak": {
+      "pool": 1111,
+      "ood_removed": 1,
+      "dup_removed": 2,
+      "selected": 100
+    },
+    "spml_injection": {
+      "pool": 12533,
+      "ood_removed": 0,
+      "dup_removed": 0,
+      "selected": 50
+    },
+    "oasst2": {
+      "pool": 5220,
+      "ood_removed": 0,
+      "dup_removed": 0,
+      "selected": 100
+    },
+    "spml_benign": {
+      "pool": 3371,
+      "ood_removed": 0,
+      "dup_removed": 0,
+      "selected": 75
+    },
+    "xstest_safe": {
+      "pool": 240,
+      "ood_removed": 48,
+      "dup_removed": 0,
+      "selected": 75
+    }
+  },
+  "n": 500,
+  "attacks": 250,
+  "benign": 250
+}

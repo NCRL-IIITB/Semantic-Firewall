@@ -8,6 +8,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 from semantic_firewall.core.agents.abuse_detector import AbuseDetectorAgent
+from semantic_firewall.core.agents.fuzzy_keywords import KeywordRepairer, keywords_from_patterns
 from semantic_firewall.core.agents.custom_rules_detector import CustomRulesDetectorAgent
 from semantic_firewall.core.agents.injection_detector import InjectionDetectorAgent
 from semantic_firewall.core.agents.pii_detector import PIIDetectorAgent
@@ -27,6 +28,13 @@ from semantic_firewall.core.orchestrator.session_patterns import MultiTurnAttack
 from semantic_firewall.core.orchestrator.settings import OrchestratorSettings, load_calibration_pair
 from semantic_firewall.core.orchestrator.paths import var_path
 from semantic_firewall.core.orchestrator.semantic_cache import SemanticCache
+
+# Keywords that escalate a prompt to the LLM stage (see _llm_gate_score).
+_LLM_ESCALATION_PATTERN = re.compile(
+    r"(ignore\s+previous|system\s+prompt|jailbreak|do\s+anything\s+now|bypass|override|"
+    r"password|api\s*key|token|secret|bomb|kill|harm)",
+    re.IGNORECASE,
+)
 
 
 @dataclass
@@ -68,6 +76,10 @@ class FirewallDecision:
     stage_latency_ms: Dict[str, float] = field(default_factory=dict)
     allowlist_hit: bool = False
     semantic_similarity: Optional[float] = None
+    # Ensemble score E (Eq. eq:ensemble) and the policy action before ensemble escalation, recorded
+    # so that the thresholds on E can be swept offline from one run.
+    ensemble_risk: Optional[float] = None
+    policy_action: Optional[str] = None
 
 
 @dataclass
@@ -224,6 +236,11 @@ class SemanticFirewallOrchestrator:
         self.llm_gate_enabled = settings.llm_gate_enabled
         self.llm_gate_threshold = settings.llm_gate_threshold
         self.disable_llm_detectors = settings.disable_llm_detectors
+        self.escalation_repairer = (
+            KeywordRepairer(keywords_from_patterns([_LLM_ESCALATION_PATTERN.pattern]))
+            if settings.fuzzy_keywords_enabled
+            else None
+        )
         self.early_exit_on_block = settings.early_exit_on_block
         self.allowlist_mode = settings.allowlist_mode
         self.audit_enabled = settings.audit_enabled
@@ -253,6 +270,11 @@ class SemanticFirewallOrchestrator:
             multi_turn_detector=self.multi_turn_detector,
             injection_agent_getter=lambda: self.agents["Injection Detector"],
             action_rank=self._action_rank,
+            unsafe_agent_getter=(
+                (lambda: self.agents["Unsafe Content Detector"]) if settings.session_window_unsafe else None
+            ),
+            llm_enabled=lambda: not self.disable_llm_detectors,
+            window_turns=settings.session_window_turns,
         )
         self.semantic_cache = SemanticCache(
             db_path=settings.semantic_cache_path or str(var_path("chroma_db")),
@@ -396,6 +418,26 @@ class SemanticFirewallOrchestrator:
                 result = future.result(timeout=timeout_seconds)
             finally:
                 executor.shutdown(wait=False, cancel_futures=True)
+            result_meta = getattr(result, "meta", {}) or {}
+            if (
+                name in self.fail_closed_agents
+                and not result.threat_found
+                and result_meta.get("llm_parse_status") == "call_failed"
+            ):
+                # The LLM call itself failed (API error, exhausted credit, network); a clean
+                # verdict here would silently bypass the check, so treat it like a timeout.
+                print(f"[Orchestrator] Agent '{name}' LLM call failed; fail-closed policy applied")
+                return AgentResult(
+                    agent_name=name,
+                    threat_found=True,
+                    threat_type="SYSTEM_UNAVAILABLE",
+                    severity="HIGH",
+                    summary=f"Detector unavailable: {name} LLM call failed. Fail-closed policy applied.",
+                    matched=[],
+                    agent_available=False,
+                    fail_closed=True,
+                    meta={**result_meta, "error_type": "llm_call_failed"},
+                )
             return AgentResult(
                 agent_name=result.agent_name,
                 threat_found=result.threat_found,
@@ -516,12 +558,9 @@ class SemanticFirewallOrchestrator:
         if any(result.threat_found for result in cheap_results):
             score += 2.0
 
-        suspicious_pattern = re.search(
-            r"(ignore\s+previous|system\s+prompt|jailbreak|do\s+anything\s+now|bypass|override|"
-            r"password|api\s*key|token|secret|bomb|kill|harm)",
-            text,
-            re.IGNORECASE,
-        )
+        suspicious_pattern = _LLM_ESCALATION_PATTERN.search(text)
+        if not suspicious_pattern and self.escalation_repairer is not None:
+            suspicious_pattern = _LLM_ESCALATION_PATTERN.search(self.escalation_repairer.repair(text))
         if suspicious_pattern:
             score += 1.0
 
@@ -887,6 +926,7 @@ class SemanticFirewallOrchestrator:
             policy_profile=policy_profile,
             workspace_id=workspace_id,
         )
+        policy_action = final_action
         ensemble_action, ensemble_risk, ensemble_contributors = self._ensemble_action(agent_results)
         if self._action_rank(ensemble_action) > self._action_rank(final_action):
             final_action = ensemble_action
@@ -1029,6 +1069,8 @@ class SemanticFirewallOrchestrator:
             stage_latency_ms=stage_latency_ms,
             allowlist_hit=bool(allowlist_hit),
             semantic_similarity=semantic_similarity,
+            ensemble_risk=round(float(ensemble_risk), 4),
+            policy_action=policy_action,
         )
 
         try:

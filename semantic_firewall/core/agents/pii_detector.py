@@ -1,3 +1,4 @@
+import os
 import re
 from dataclasses import dataclass, field
 from typing import List, Dict, Tuple, Set
@@ -107,7 +108,7 @@ class PIIDetectorAgent:
                 "Indian mobile number"
             ),
             "phone_us": (
-                r'\b(?:\+1[-\s.]?)?\(?\d{3}\)?[-\s.]?\d{3}[-\s.]?\d{4}\b',
+                r'(?<![\w+])(?:\+1[-\s.]?)?(?:\(\d{3}\)|\d{3})[-\s.]?\d{3}[-\s.]?\d{4}(?![\w]|[.-]\d)',
                 "US phone number"
             ),
             "phone_uk": (
@@ -115,7 +116,7 @@ class PIIDetectorAgent:
                 "UK phone number"
             ),
             "phone_generic": (
-                r'\b(?:(?:\+\d{1,4}[\s-]?)?(?:\(\d{1,5}\)[\s-]?)?(?:\d{2,4}[\s-]){1,3}\d{2,4}|\+\d{7,15})\b',
+                r'(?<![\w.+$/-])(?:(?:\+\d{1,4}[\s.-]?)?(?:\(\d{1,5}\)[\s.-]?)?\d{2,5}(?:[\s.-]\d{2,8}){1,3}|\+\d{7,15})(?![\w]|[.-]\d)',
                 "Generic international phone number"
             ),
 
@@ -153,7 +154,7 @@ class PIIDetectorAgent:
                 "International Bank Account Number (IBAN)"
             ),
             "account_number": (
-                r'\b(?:acct|account|acc(?:\s*no|#))[\s:]*[A-Za-z0-9]{8,16}\b',
+                r'\b(?:acct|account|acc(?:\s*no|#))[\s:]*((?=[A-Za-z0-9]*\d)[A-Za-z0-9]{8,16})\b',
                 "Account Number (contextual)"
             ),
             "upi_id": (
@@ -180,8 +181,9 @@ class PIIDetectorAgent:
                 "US Zipcode"
             ),
             "pincode_india": (
-                r'\b[1-9][0-9]{5}\b',
-                "Indian PIN code"
+                # A bare 6-digit number is far more often an amount or ID than a PIN code.
+                r'\b(?:pin\s*code|pincode|pin|postal\s*code|post\s*code)\b[\s:#-]*([1-9][0-9]{5})\b',
+                "Indian PIN code (contextual)"
             ),
             "coordinates": (
                 r'\b[-+]?(?:[1-8]?\d(?:\.\d+)?|90(?:\.0+)?),\s*[-+]?(?:180(?:\.0+)?|(?:1[0-7]\d|[1-9]?\d)(?:\.\d+)?)\b',
@@ -206,7 +208,10 @@ class PIIDetectorAgent:
 
             # ── Personal ──────────────────────────────────────────────────────
             "date_of_birth": (
-                r'\b(?:(?:19|20)\d{2}[/\-\.](?:0?[1-9]|1[0-2])[/\-\.](?:0?[1-9]|[12][0-9]|3[01])|(?:0?[1-9]|[12][0-9]|3[01])[/\-\.](?:0?[1-9]|1[0-2])[/\-\.](?:19|20)\d{2})\b',
+                r'\b(?:(?:19|20)\d{2}[/\-\.](?:0?[1-9]|1[0-2])[/\-\.](?:0?[1-9]|[12][0-9]|3[01])(?:T\d{2}:\d{2}:\d{2}(?:\.\d+)?Z?)?'
+                r'|(?:0?[1-9]|[12][0-9]|3[01])[/\-\.](?:0?[1-9]|1[0-2])[/\-\.](?:19|20)\d{2}'
+                r'|(?i:(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s\d{1,2}(?:st|nd|rd|th)?,?\s(?:18|19|20)\d{2})'
+                r'|(?i:\d{1,2}(?:st|nd|rd|th)?\s(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?),?\s(?:18|19|20)\d{2}))\b',
                 "Date of birth (strict format)"
             ),
             "age_with_context": (
@@ -230,7 +235,23 @@ class PIIDetectorAgent:
                 "Caste/community (contextual)"
             ),
         }
-        
+
+        # Optional, dataset-adapted patterns. Off by default: they flag any bare 8-digit
+        # number as an account number, which suits ai4privacy/pii-masking-200k (where such
+        # numbers are labelled ACCOUNTNUMBER) but would over-flag general traffic.
+        self.profile = os.getenv("SEMANTIC_FIREWALL_PII_PROFILE", "").strip().lower()
+        if self.profile == "ai4privacy":
+            self.patterns.update({
+                "account_number_bare": (
+                    r'(?<![\w.-])(\d{8})(?![\w]|[.-]\d)',
+                    "Account number (bare 8 digits; ai4privacy profile)"
+                ),
+                "ssn_ch_ahv": (
+                    r'(?<![\w.])(756[.\s-]?\d{4}[.\s-]?\d{4}(?:[.\s-]?\d{2})?)(?![\w]|[.-]\d)',
+                    "Swiss AHV-style social security number (ai4privacy profile)"
+                ),
+            })
+
         # Compile regex patterns once at initialization for performance
         self.compiled_patterns: Dict[str, Tuple[re.Pattern, str]] = {}
         for pii_type, (pattern, description) in self.patterns.items():
@@ -250,8 +271,8 @@ class PIIDetectorAgent:
         "email", "upi_id", "iban", "ifsc_code", "pan_card", "voter_id", "passport_india",
         "driving_license_india", "vehicle_reg_india", "health_id_india",
         "credit_card_visa", "credit_card_mastercard", "credit_card_amex", "credit_card_generic",
-        "cvv", "ssn_us", "aadhaar", "phone_india", "phone_uk", "phone_us", "nhs_uk",
-        "bank_account_india", "account_number", "mac_address", "ipv6", "ipv4",
+        "cvv", "ssn_us", "ssn_ch_ahv", "aadhaar", "phone_india", "phone_uk", "phone_us", "nhs_uk",
+        "bank_account_india", "account_number", "account_number_bare", "mac_address", "ipv6", "ipv4",
         "date_of_birth", "coordinates", "phone_generic", "zipcode_us", "pincode_india",
     )
 
@@ -350,23 +371,37 @@ class PIIDetectorAgent:
             print(f"[PIIDetector] Input truncated from {len(text)} to {self.max_text_length} chars")
 
         matched: List[PIIMatch] = []
+        spans: List[Tuple[int, int]] = []
 
         for pii_type, (compiled_pattern, description) in self.compiled_patterns.items():
             try:
-                found = compiled_pattern.findall(processed_text)
-                for value in found:
-                    # re.findall returns strings or tuples (for groups)
-                    val = value if isinstance(value, str) else value[0]
-                    if val.strip():
+                for found in compiled_pattern.finditer(processed_text):
+                    # The value is the first capture group if the pattern has one (contextual
+                    # patterns capture only the value, not the keyword), else the whole match.
+                    group = 1 if compiled_pattern.groups else 0
+                    val = found.group(group)
+                    if val and val.strip():
                         matched.append(PIIMatch(
                             pii_type=pii_type,
                             value=val.strip(),
                             description=description,
                             confidence=self._confidence_for(pii_type, description),
                         ))
+                        spans.append(found.span(group))
             except (re.error, IndexError) as e:
                 print(f"[PIIDetector] Error scanning pattern '{pii_type}': {e}")
                 continue  # skip malformed patterns gracefully
+
+        # Overlap: drop a match that lies strictly inside a longer match (e.g. a 5-digit
+        # "zipcode" that is part of a phone number), so fragments are not reported as PII.
+        keep = [
+            not any(
+                (s2 <= s1 and e1 <= e2) and (e2 - s2) > (e1 - s1)
+                for j, (s2, e2) in enumerate(spans) if j != i
+            )
+            for i, (s1, e1) in enumerate(spans)
+        ]
+        matched = [m for m, k in zip(matched, keep) if k]
 
         # Deduplication: when several patterns match the same value, keep the most
         # specific type (e.g. a 16-digit card beats the generic phone pattern).

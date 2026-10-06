@@ -1,0 +1,72 @@
+{
+  "part": "dev",
+  "config": "full_all_unresolved",
+  "cache_protocol": "warm_frozen",
+  "seeded_cache": 2650,
+  "sessions_attack": 47,
+  "sessions_benign": 50,
+  "tp": 27,
+  "fn": 20,
+  "fp": 4,
+  "tn": 46,
+  "session_recall": 0.574468085106383,
+  "session_fpr": 0.08,
+  "precision": 0.8709677419354839,
+  "f1": 0.6923076923076925,
+  "mean_first_detection_turn": 3.3703703703703702,
+  "mean_turns_attack": 4.9787234042553195,
+  "detected_by_category": {
+    "chemical_biological": 8,
+    "illegal": 6,
+    "misinformation_disinformation": 3,
+    "cybercrime_intrusion": 8,
+    "harmful": 1,
+    "harassment_bullying": 1
+  },
+  "attacks_by_category": {
+    "chemical_biological": 11,
+    "illegal": 8,
+    "misinformation_disinformation": 9,
+    "cybercrime_intrusion": 11,
+    "harassment_bullying": 4,
+    "harmful": 4
+  },
+  "llm_calls": 396,
+  "sessions_with_llm_failure": 0,
+  "benign_flag_reasons": {
+    "Injection Detector": 2,
+    "Multi-turn Unsafe Content Detector": 1,
+    "Unsafe Content Detector": 1
+  },
+  "env": {
+    "SEMANTIC_FIREWALL_CACHE_TTL_SEC": "0",
+    "SEMANTIC_FIREWALL_AUDIT_ENABLED": "0",
+    "SEMANTIC_FIREWALL_DISABLE_LLM_DETECTORS": "0",
+    "SEMANTIC_FIREWALL_LLM_GATE_ENABLED": "0",
+    "SEMANTIC_FIREWALL_LLM_GATE_THRESHOLD": "1.0",
+    "SEMANTIC_FIREWALL_EARLY_EXIT_ON_BLOCK": "1",
+    "SEMANTIC_FIREWALL_DISABLED_AGENTS": "",
+    "SEMANTIC_FIREWALL_SEMANTIC_CACHE_ENABLED": "1",
+    "SEMANTIC_FIREWALL_CACHE_SIM_THRESHOLD": "0.90",
+    "SEMANTIC_FIREWALL_CACHE_WRITEBACK": "0",
+    "SEMANTIC_FIREWALL_CACHE_WRITEBACK_REQUIRE_LLM": "1",
+    "SEMANTIC_FIREWALL_CACHE_WRITEBACK_MIN_CONFIDENCE": "0.85",
+    "SEMANTIC_FIREWALL_LLM_AGENT_REGEX_ENABLED": "1",
+    "SEMANTIC_FIREWALL_ENSEMBLE_ENABLED": "1",
+    "SEMANTIC_FIREWALL_ALLOWLIST_MODE": "skip_llm",
+    "SEMANTIC_FIREWALL_OPENROUTER_PROVIDERS": "DeepInfra,Parasail,AkashML",
+    "SEMANTIC_FIREWALL_LLM_JSON_MODE": "1",
+    "SEMANTIC_FIREWALL_AGENT_TIMEOUT_INJECTION_SEC": "90",
+    "SEMANTIC_FIREWALL_AGENT_TIMEOUT_UNSAFE_CONTENT_SEC": "90",
+    "SEMANTIC_FIREWALL_LLM_TIMEOUT_SEC": "40",
+    "SEMANTIC_FIREWALL_SEMANTIC_CACHE_PATH": "C:\\Users\\Aksha\\OneDrive\\Desktop\\Semantic-Firewall-main\\Semantic-Firewall-main\\semantic_firewall\\benchmarks\\research\\results_camera_ready\\_work\\caches\\multiturn-dev-full_all_unresolved-warm_frozen-v3"
+  },
+  "meta": {
+    "timestamp_utc": "2026-10-05T23:22:51.258079+00:00",
+    "python": "3.13.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "cpu_count": 18,
+    "code_fingerprint": "f47372d94d53483e"
+  }
+}

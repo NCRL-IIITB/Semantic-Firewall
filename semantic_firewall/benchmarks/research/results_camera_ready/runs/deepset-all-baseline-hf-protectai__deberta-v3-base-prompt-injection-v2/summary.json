@@ -1,0 +1,51 @@
+{
+  "n": 662,
+  "n_attack": 263,
+  "tp": 109,
+  "fp": 4,
+  "tn": 395,
+  "fn": 154,
+  "precision": 0.9646017699115044,
+  "recall": 0.4144486692015209,
+  "f1": 0.5797872340425532,
+  "accuracy": 0.7613293051359517,
+  "fpr": 0.010025062656641603,
+  "fnr": 0.5855513307984791,
+  "f1_ci95": [
+    0.5193370165745856,
+    0.6393453104691627
+  ],
+  "fpr_ci95": [
+    0.002403702038369305,
+    0.02030456852791878
+  ],
+  "recall_ci95": [
+    0.3565813011957443,
+    0.4767486583184258
+  ],
+  "latency_mean_ms": 173.5526530210611,
+  "latency_p50_ms": 152.55199999955948,
+  "latency_p95_ms": 303.8067349993072,
+  "latency_p99_ms": 452.71892999928224,
+  "n_llm_failed": 0,
+  "n_errors": 0,
+  "baseline": {
+    "kind": "hf",
+    "model": "protectai/deberta-v3-base-prompt-injection-v2",
+    "temperature": 0.0,
+    "extra_body": null,
+    "prompt": null
+  },
+  "protocol": {
+    "dataset": "deepset",
+    "split": "all"
+  },
+  "meta": {
+    "timestamp_utc": "2026-10-04T17:17:49.336082+00:00",
+    "python": "3.13.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "cpu_count": 18,
+    "code_fingerprint": "9f778d0b0d4f738c"
+  }
+}

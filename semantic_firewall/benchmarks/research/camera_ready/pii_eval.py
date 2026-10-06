@@ -3,14 +3,16 @@
 Matching is at the value level (lower-cased, stripped). Two protocols are reported:
 
   legacy       FP = every detected value that is not a ground-truth value of the 12 target
-               types (this is what experiments/04_pii_scaled.py computed). It counts real PII
+               types (the protocol of the original submission). It counts real PII
                of other types (names, ages, ...) as false positives.
   type_mapped  only detections whose detector type maps to one of the 12 target types are
                scored; a detection that equals a ground-truth value of a non-target type is
                "out of scope", not a false positive.
 
 Per-type recall and a per-language breakdown are also written. Runs offline in ~10 minutes.
-  python pii_eval.py
+  python pii_eval.py                  # all rows
+  python pii_eval.py --part dev       # rows with index % 5 == 0 (used for error analysis)
+  python pii_eval.py --part heldout   # the other 80% (never inspected; report this)
 """
 
 import argparse
@@ -29,6 +31,8 @@ TYPE_MAP = {
     "credit_card_amex": "CREDITCARDNUMBER", "credit_card_generic": "CREDITCARDNUMBER",
     "cvv": "CREDITCARDCVV", "ssn_us": "SSN", "zipcode_us": "ZIPCODE", "pincode_india": "ZIPCODE",
     "bank_account_india": "ACCOUNTNUMBER", "account_number": "ACCOUNTNUMBER",
+    # ai4privacy profile (SEMANTIC_FIREWALL_PII_PROFILE=ai4privacy)
+    "account_number_bare": "ACCOUNTNUMBER", "ssn_ch_ahv": "SSN",
 }
 
 
@@ -41,12 +45,21 @@ def prf(tp, fp, fn):
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--max-rows", type=int, default=0)
+    parser.add_argument("--part", choices=["all", "dev", "heldout"], default="all")
+    parser.add_argument("--profile", choices=["default", "ai4privacy"], default="default",
+                        help="ai4privacy adds the dataset-adapted patterns (bare 8-digit accounts, 756-prefixed SSNs)")
     args = parser.parse_args()
 
+    import os
     from datasets import load_dataset
     from semantic_firewall.core.agents.pii_detector import PIIDetectorAgent
 
+    os.environ["SEMANTIC_FIREWALL_PII_PROFILE"] = "" if args.profile == "default" else args.profile
+
     rows = load_dataset("ai4privacy/pii-masking-200k", "default")["train"]
+    if args.part != "all":
+        want_dev = args.part == "dev"
+        rows = rows.select([i for i in range(len(rows)) if (i % 5 == 0) == want_dev])
     if args.max_rows:
         rows = rows.select(range(args.max_rows))
     agent = PIIDetectorAgent()
@@ -95,6 +108,8 @@ def main():
     latencies.sort()
     result = {
         "dataset": "ai4privacy/pii-masking-200k (train, all languages)",
+        "part": args.part,
+        "profile": args.profile,
         "rows": len(rows),
         "ground_truth_entities_target_types": legacy["tp"] + legacy["fn"],
         "legacy": prf(legacy["tp"], legacy["fp"], legacy["fn"]),
@@ -107,7 +122,8 @@ def main():
                        "p95": latencies[int(len(latencies) * 0.95) - 1], "p99": latencies[int(len(latencies) * 0.99) - 1]},
         "meta": run_metadata(),
     }
-    write_json(OUT_ROOT / "pii" / "pii_eval.json", result)
+    suffix = ("" if args.part == "all" else f"_{args.part}") + ("" if args.profile == "default" else f"_{args.profile}")
+    write_json(OUT_ROOT / "pii" / f"pii_eval{suffix}.json", result)
     for key in ("legacy", "type_mapped"):
         r = result[key]
         print(f"  {key:12s} P={r['precision']:.4f} R={r['recall']:.4f} F1={r['f1']:.4f}")
