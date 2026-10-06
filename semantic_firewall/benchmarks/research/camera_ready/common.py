@@ -1,6 +1,6 @@
 """Shared code for the camera-ready evaluation.
 
-Rules this harness enforces (they answer the reviewers' protocol concerns):
+Rules this harness enforces:
   * Parameters are tuned on neuralchemy `validation`; final numbers come from `test` once.
   * Every run gets its own empty semantic cache directory. "Warm" means the cache is
     seeded from the *train* split only (train/validation/test share no group_id and no
@@ -29,6 +29,12 @@ from pathlib import Path
 from typing import Callable, Iterable, Optional
 
 PROJECT_ROOT = Path(__file__).resolve().parents[4]
+
+try:  # API keys live in <repo>/.env (git-ignored)
+    from dotenv import load_dotenv
+    load_dotenv(PROJECT_ROOT / ".env")
+except ImportError:
+    pass
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -59,6 +65,16 @@ BASE_ENV = {
     "SEMANTIC_FIREWALL_LLM_AGENT_REGEX_ENABLED": "1",
     "SEMANTIC_FIREWALL_ENSEMBLE_ENABLED": "1",
     "SEMANTIC_FIREWALL_ALLOWLIST_MODE": "skip_llm",
+    # OpenRouter hosts for Llama-3.3-70B, in order; fallback only inside this list (a host outside it
+    # returned degenerate output). The host that served each call is recorded per prompt.
+    "SEMANTIC_FIREWALL_OPENROUTER_PROVIDERS": "DeepInfra,Parasail,AkashML",
+    # JSON mode (all three hosts support response_format): replies are always a JSON object.
+    "SEMANTIC_FIREWALL_LLM_JSON_MODE": "1",
+    # The 8 s production timeout for the LLM agents is below the hosts' latency (4-9 s, more with a retry);
+    # with it ~2/3 of LLM calls became fail-closed "unavailable" results. Experiments measure the LLM verdict.
+    "SEMANTIC_FIREWALL_AGENT_TIMEOUT_INJECTION_SEC": "90",
+    "SEMANTIC_FIREWALL_AGENT_TIMEOUT_UNSAFE_CONTENT_SEC": "90",
+    "SEMANTIC_FIREWALL_LLM_TIMEOUT_SEC": "40",
 }
 
 
@@ -89,9 +105,14 @@ CONFIGS = {c.name: c for c in [
     _cfg("regex_only", "Injection/unsafe regex pre-screen + threat-intel signatures only.", uses_llm=False,
          DISABLE_LLM_DETECTORS=1, SEMANTIC_CACHE_ENABLED=0,
          DISABLED_AGENTS="Context Flooding Detector,PII Detector,Secrets Detector,Abuse Detector,Custom Rules Detector"),
+    _cfg("detectors_only", "Deterministic detectors only (no regex pre-screen, no cache, no LLM).", uses_llm=False,
+         DISABLE_LLM_DETECTORS=1, LLM_AGENT_REGEX_ENABLED=0, SEMANTIC_CACHE_ENABLED=0),
+    _cfg("regex_cache", "Regex pre-screen + threat-intel signatures + semantic cache (no other detectors, no LLM).",
+         uses_llm=False, DISABLE_LLM_DETECTORS=1,
+         DISABLED_AGENTS="Context Flooding Detector,PII Detector,Secrets Detector,Abuse Detector,Custom Rules Detector"),
     _cfg("cache_only", "Semantic cache only (misses are allowed).", uses_llm=False,
          DISABLE_LLM_DETECTORS=1, DISABLED_AGENTS=",".join(ALL_AGENTS)),
-    _cfg("llm_agents_only", "Reviewer 2 baseline: the two LLM agents in parallel on every prompt; no regex, "
+    _cfg("llm_agents_only", "Baseline: the two LLM agents in parallel on every prompt; no regex, "
          "no deterministic detectors, no cache.", LLM_GATE_ENABLED=0, LLM_AGENT_REGEX_ENABLED=0,
          SEMANTIC_CACHE_ENABLED=0, DISABLED_AGENTS=",".join(DETERMINISTIC_AGENTS)),
     _cfg("injection_llm_only", "Single LLM injection agent on every prompt (closest to an 'LLM-only gate').",
@@ -131,6 +152,11 @@ def load_samples(dataset: str, split: str = "test", max_samples: int = 0, seed: 
     elif dataset == "no_robots":
         for i, r in enumerate(_load("HuggingFaceH4/no_robots")[split]):
             rows.append({"id": f"nr-{i}", "text": r["prompt"], "label": 0})
+    elif dataset == "ood500":
+        path = PROJECT_ROOT / "data" / "datasets" / "ood_curated_500.jsonl"
+        for line in path.read_text(encoding="utf-8").splitlines():
+            r = json.loads(line)
+            rows.append({"id": r["id"], "text": r["text"], "label": int(r["label"]), "category": r["source"]})
     elif dataset == "alpaca":
         for i, r in enumerate(_load("tatsu-lab/alpaca")["train"]):
             text = (r["instruction"] + " " + (r.get("input") or "")).strip()
@@ -178,6 +204,8 @@ def build_firewall(config: SystemConfig, run_name: str, cache_protocol: str = "c
     if cache_protocol == "warm_frozen":
         overrides.setdefault("SEMANTIC_FIREWALL_CACHE_WRITEBACK", "0")
     env = apply_env(config, overrides, cache_dir)
+    if config.uses_llm and not os.getenv("OPENROUTER_API_KEY", "").strip():
+        raise SystemExit(f"config {config.name!r} needs OPENROUTER_API_KEY (put it in {PROJECT_ROOT / '.env'})")
     from semantic_firewall.core.orchestrator.orchestrator import SemanticFirewallOrchestrator
 
     with quiet_stdout(quiet):
@@ -224,6 +252,10 @@ def decision_record(sample: dict, decision, latency_ms: float) -> dict:
         "latency_ms": round(latency_ms, 3),
         "stage_latency_ms": {k: round(v, 3) for k, v in (getattr(decision, "stage_latency_ms", {}) or {}).items()},
         "semantic_similarity": getattr(decision, "semantic_similarity", None),
+        "llm_hosts": sorted({(getattr(r, "meta", {}) or {}).get("llm_host")
+                             for r in (getattr(decision, "agent_results", []) or [])} - {None}),
+        "ensemble_risk": getattr(decision, "ensemble_risk", None),
+        "policy_action": getattr(decision, "policy_action", None),
         "triggered_agents": list(getattr(decision, "triggered_agents", []) or []),
         "degraded": bool(getattr(decision, "degraded", False)),
         "text_chars": len(sample["text"]),

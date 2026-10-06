@@ -1,0 +1,51 @@
+{
+  "n": 942,
+  "n_attack": 552,
+  "tp": 197,
+  "fp": 16,
+  "tn": 374,
+  "fn": 355,
+  "precision": 0.9248826291079812,
+  "recall": 0.35688405797101447,
+  "f1": 0.5150326797385621,
+  "accuracy": 0.6061571125265393,
+  "fpr": 0.041025641025641026,
+  "fnr": 0.6431159420289855,
+  "f1_ci95": [
+    0.4707442977190876,
+    0.5586297760210802
+  ],
+  "fpr_ci95": [
+    0.022275852585258524,
+    0.06234413965087282
+  ],
+  "recall_ci95": [
+    0.31674654317371503,
+    0.3974921471273686
+  ],
+  "latency_mean_ms": 716.7989611465051,
+  "latency_p50_ms": 551.8815499999619,
+  "latency_p95_ms": 1414.4792650011368,
+  "latency_p99_ms": 2687.6620019998522,
+  "n_llm_failed": 0,
+  "n_errors": 1,
+  "baseline": {
+    "kind": "llama_guard",
+    "model": "meta-llama/llama-guard-4-12b",
+    "temperature": 0.0,
+    "extra_body": null,
+    "prompt": null
+  },
+  "protocol": {
+    "dataset": "neuralchemy",
+    "split": "test"
+  },
+  "meta": {
+    "timestamp_utc": "2026-10-04T14:50:53.591798+00:00",
+    "python": "3.13.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "cpu_count": 18,
+    "code_fingerprint": "c14f6a2af17921ab"
+  }
+}

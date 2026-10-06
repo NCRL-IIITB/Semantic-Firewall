@@ -1,0 +1,81 @@
+{
+  "reference": "neuralchemy-test-full_all_unresolved-warm_frozen-tau0.65",
+  "comparisons": [
+    {
+      "compare": "neuralchemy-test-injection_llm_only-none",
+      "n_common": 942,
+      "ref_only_correct": 61,
+      "other_only_correct": 18,
+      "chi2": 22.329113924050635,
+      "p": 2.296976642813543e-06,
+      "test": "chi-square, continuity-corrected",
+      "ref": {
+        "precision": 0.9422066549912435,
+        "recall": 0.9746376811594203,
+        "f1": 0.9581478183437222,
+        "accuracy": 0.9501061571125266,
+        "fpr": 0.08461538461538462,
+        "fnr": 0.025362318840579712
+      },
+      "other": {
+        "precision": 0.963855421686747,
+        "recall": 0.8695652173913043,
+        "f1": 0.9142857142857143,
+        "accuracy": 0.9044585987261147,
+        "fpr": 0.046153846153846156,
+        "fnr": 0.13043478260869565
+      },
+      "delta_f1_ci95": [
+        0.02752781830853122,
+        0.06047697363044901
+      ],
+      "delta_fpr_ci95": [
+        0.015789473684210534,
+        0.06167050866074593
+      ],
+      "p_holm": 2.296976642813543e-06
+    },
+    {
+      "compare": "neuralchemy-test-fast_layers-warm_frozen",
+      "n_common": 942,
+      "ref_only_correct": 84,
+      "other_only_correct": 14,
+      "chi2": 48.58163265306123,
+      "p": 3.1682260343714622e-12,
+      "test": "chi-square, continuity-corrected",
+      "ref": {
+        "precision": 0.9422066549912435,
+        "recall": 0.9746376811594203,
+        "f1": 0.9581478183437222,
+        "accuracy": 0.9501061571125266,
+        "fpr": 0.08461538461538462,
+        "fnr": 0.025362318840579712
+      },
+      "other": {
+        "precision": 0.959830866807611,
+        "recall": 0.822463768115942,
+        "f1": 0.8858536585365853,
+        "accuracy": 0.8757961783439491,
+        "fpr": 0.04871794871794872,
+        "fnr": 0.17753623188405798
+      },
+      "delta_f1_ci95": [
+        0.0535573596860516,
+        0.0929695595223315
+      ],
+      "delta_fpr_ci95": [
+        0.01785487672226251,
+        0.05585427832819014
+      ],
+      "p_holm": 6.3364520687429244e-12
+    }
+  ],
+  "meta": {
+    "timestamp_utc": "2026-10-05T23:51:41.164073+00:00",
+    "python": "3.13.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "cpu_count": 18,
+    "code_fingerprint": "f47372d94d53483e"
+  }
+}

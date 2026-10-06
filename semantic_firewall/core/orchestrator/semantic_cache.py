@@ -45,7 +45,7 @@ class SemanticCache:
         self,
         db_path: Optional[str] = None,
         enabled: bool = True,
-        similarity_threshold: float = 0.90,
+        similarity_threshold: float = 0.65,
         allowlist_threshold: float = 0.90,
         writeback: bool = True,
         writeback_require_llm: bool = True,

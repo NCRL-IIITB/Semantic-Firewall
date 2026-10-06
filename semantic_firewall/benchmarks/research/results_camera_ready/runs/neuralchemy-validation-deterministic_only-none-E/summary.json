@@ -1,0 +1,84 @@
+{
+  "n": 941,
+  "n_attack": 534,
+  "tp": 134,
+  "fp": 9,
+  "tn": 398,
+  "fn": 400,
+  "precision": 0.9370629370629371,
+  "recall": 0.250936329588015,
+  "f1": 0.39586410635155095,
+  "accuracy": 0.565356004250797,
+  "fpr": 0.022113022113022112,
+  "fnr": 0.7490636704119851,
+  "f1_ci95": [
+    0.3437921020920171,
+    0.44081662842651853
+  ],
+  "fpr_ci95": [
+    0.009779951100244499,
+    0.03731575910968847
+  ],
+  "recall_ci95": [
+    0.21164493758668518,
+    0.2876479125579845
+  ],
+  "latency_mean_ms": 10.574168969181722,
+  "latency_p50_ms": 7.765,
+  "latency_p95_ms": 16.782,
+  "latency_p99_ms": 35.52940000000001,
+  "resolution_stage_counts": {
+    "deterministic": 941
+  },
+  "llm_call_rate": 0.0,
+  "n_llm_failed": 0,
+  "n_errors": 0,
+  "config": {
+    "name": "deterministic_only",
+    "description": "Regex pre-screen + deterministic detectors; no cache, no LLM.",
+    "uses_llm": false
+  },
+  "protocol": {
+    "dataset": "neuralchemy",
+    "split": "validation",
+    "cache": "none",
+    "seeded_entries": 0,
+    "cache_size_after": 0,
+    "cache_stats": {
+      "threat_queries": 0,
+      "threat_hits": 0,
+      "allowlist_queries": 0,
+      "allowlist_hits": 0,
+      "writes": 0,
+      "writes_rejected": 0,
+      "evictions": 0
+    },
+    "workers": 1
+  },
+  "env": {
+    "SEMANTIC_FIREWALL_CACHE_TTL_SEC": "0",
+    "SEMANTIC_FIREWALL_AUDIT_ENABLED": "0",
+    "SEMANTIC_FIREWALL_DISABLE_LLM_DETECTORS": "1",
+    "SEMANTIC_FIREWALL_LLM_GATE_ENABLED": "1",
+    "SEMANTIC_FIREWALL_LLM_GATE_THRESHOLD": "1.0",
+    "SEMANTIC_FIREWALL_EARLY_EXIT_ON_BLOCK": "1",
+    "SEMANTIC_FIREWALL_DISABLED_AGENTS": "",
+    "SEMANTIC_FIREWALL_SEMANTIC_CACHE_ENABLED": "0",
+    "SEMANTIC_FIREWALL_CACHE_SIM_THRESHOLD": "0.90",
+    "SEMANTIC_FIREWALL_CACHE_WRITEBACK": "1",
+    "SEMANTIC_FIREWALL_CACHE_WRITEBACK_REQUIRE_LLM": "1",
+    "SEMANTIC_FIREWALL_CACHE_WRITEBACK_MIN_CONFIDENCE": "0.85",
+    "SEMANTIC_FIREWALL_LLM_AGENT_REGEX_ENABLED": "1",
+    "SEMANTIC_FIREWALL_ENSEMBLE_ENABLED": "1",
+    "SEMANTIC_FIREWALL_ALLOWLIST_MODE": "skip_llm",
+    "SEMANTIC_FIREWALL_SEMANTIC_CACHE_PATH": "C:\\Users\\Aksha\\OneDrive\\Desktop\\Semantic-Firewall-main\\Semantic-Firewall-main\\semantic_firewall\\benchmarks\\research\\results_camera_ready\\_work\\caches\\neuralchemy-validation-deterministic_only-none-E"
+  },
+  "meta": {
+    "timestamp_utc": "2026-10-05T19:36:10.924777+00:00",
+    "python": "3.13.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "cpu_count": 18,
+    "code_fingerprint": "976f0505d43e54d1"
+  }
+}

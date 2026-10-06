@@ -1,0 +1,130 @@
+{
+  "latency_run": "neuralchemy-test-latency-groq",
+  "paths_run": "neuralchemy-test-full_all_unresolved-warm_frozen-tau0.65",
+  "warmup_excluded": 10,
+  "overall_ms": {
+    "n": 200,
+    "mean": 303.53569500000003,
+    "p50": 278.5435,
+    "p95": 756.4935500000005,
+    "p99": 1046.765989999999,
+    "min": 35.319,
+    "max": 1241.963
+  },
+  "by_path_ms": {
+    "cache": {
+      "n": 96,
+      "mean": 85.59168749999999,
+      "p50": 77.0855,
+      "p95": 137.20175,
+      "p99": 250.15394999999947,
+      "min": 35.319,
+      "max": 422.977
+    },
+    "llm": {
+      "n": 96,
+      "mean": 519.10109375,
+      "p50": 437.8735,
+      "p95": 935.5805,
+      "p99": 1148.2236499999997,
+      "min": 316.029,
+      "max": 1241.963
+    },
+    "deterministic": {
+      "n": 8,
+      "mean": 332.079,
+      "p50": 216.3485,
+      "p95": 677.8217,
+      "p99": 683.89154,
+      "min": 150.144,
+      "max": 685.409
+    }
+  },
+  "by_stage_ms": {
+    "semantic_memory": {
+      "n": 200,
+      "mean": 81.21266,
+      "p50": 69.901,
+      "p95": 144.94080000000008,
+      "p99": 244.94535999999985,
+      "min": 32.429,
+      "max": 419.164
+    },
+    "deterministic": {
+      "n": 104,
+      "mean": 99.09857692307693,
+      "p50": 55.0865,
+      "p95": 360.1256499999998,
+      "p99": 510.24483,
+      "min": 9.855,
+      "max": 527.27
+    },
+    "llm": {
+      "n": 96,
+      "mean": 345.406,
+      "p50": 295.03499999999997,
+      "p95": 650.55275,
+      "p99": 694.5873499999998,
+      "min": 233.125,
+      "max": 759.84
+    }
+  },
+  "path_probabilities": {
+    "llm": 0.4989384288747346,
+    "deterministic": 0.02653927813163482,
+    "cache": 0.4745222929936306
+  },
+  "path_mean_latency_ms": {
+    "cache": 85.59168749999999,
+    "llm": 519.10109375,
+    "deterministic": 332.079
+  },
+  "effective_latency_ms": 308.42778489915077,
+  "llm_hosts": [
+    "Groq"
+  ],
+  "llm_failed": 0,
+  "meta": {
+    "timestamp_utc": "2026-10-05T23:55:24.672226+00:00",
+    "python": "3.13.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "cpu_count": 18,
+    "code_fingerprint": "f47372d94d53483e"
+  },
+  "prevalence": {
+    "0.01": {
+      "llm_call_rate": 0.9435627090300929,
+      "path_probabilities": {
+        "llm": 0.9435627090300929,
+        "deterministic": 0.0029732441471571904,
+        "cache": 0.05346404682274242
+      },
+      "effective_latency_ms": 495.36786421051556,
+      "p95_ms": 943.994,
+      "p99_ms": 1241.963
+    },
+    "0.05": {
+      "llm_call_rate": 0.9126853400223008,
+      "path_probabilities": {
+        "llm": 0.9126853400223008,
+        "deterministic": 0.004609810479375698,
+        "cache": 0.08270484949832763
+      },
+      "effective_latency_ms": 482.385627142343,
+      "p95_ms": 943.994,
+      "p99_ms": 1241.963
+    },
+    "0.1": {
+      "llm_call_rate": 0.874088628762546,
+      "path_probabilities": {
+        "llm": 0.874088628762546,
+        "deterministic": 0.006655518394648832,
+        "cache": 0.119255852842809
+      },
+      "effective_latency_ms": 466.1578308071197,
+      "p95_ms": 943.994,
+      "p99_ms": 1241.963
+    }
+  }
+}

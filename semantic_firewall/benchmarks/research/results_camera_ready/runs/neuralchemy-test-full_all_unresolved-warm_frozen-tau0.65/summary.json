@@ -1,0 +1,36 @@
+{
+  "n": 942,
+  "n_attack": 552,
+  "tp": 538,
+  "fp": 33,
+  "tn": 357,
+  "fn": 14,
+  "precision": 0.9422066549912435,
+  "recall": 0.9746376811594203,
+  "f1": 0.9581478183437222,
+  "accuracy": 0.9501061571125266,
+  "fpr": 0.08461538461538462,
+  "fnr": 0.025362318840579712,
+  "latency_mean_ms": 5386.035373673036,
+  "latency_p50_ms": 2979.5029999999997,
+  "latency_p95_ms": 18036.4103,
+  "latency_p99_ms": 40140.20551000001,
+  "resolution_stage_counts": {
+    "llm": 822,
+    "deterministic": 120
+  },
+  "llm_call_rate": 0.4989384288747346,
+  "n_llm_failed": 3,
+  "n_errors": 0,
+  "derived_from": "neuralchemy-test-full_all_unresolved-none",
+  "tau": 0.65,
+  "rule": "pred = 1 if sim(prompt, nearest train attack) >= tau else no-cache pred",
+  "meta": {
+    "timestamp_utc": "2026-10-05T23:35:33.482811+00:00",
+    "python": "3.13.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "cpu_count": 18,
+    "code_fingerprint": "f47372d94d53483e"
+  }
+}

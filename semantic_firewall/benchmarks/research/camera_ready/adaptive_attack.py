@@ -1,4 +1,4 @@
-"""Adaptive black-box attacks that optimise directly against the firewall (Reviewer 1 item 4, Reviewer 2 item 4).
+"""Adaptive black-box attacks that optimise directly against the firewall.
 
 Goals are test-split attacks that the firewall blocks on the first try. For each goal the
 attacker gets K queries; it sees the firewall's decision (and, with --feedback reason, the

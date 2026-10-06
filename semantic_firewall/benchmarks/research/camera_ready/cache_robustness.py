@@ -1,4 +1,4 @@
-"""Security analysis of the self-updating semantic memory (Reviewer 1 item 4, Reviewer 3 item 2).
+"""Security analysis of the self-updating semantic memory.
 
 Runs locally (embeddings + deterministic detectors, no API):
 

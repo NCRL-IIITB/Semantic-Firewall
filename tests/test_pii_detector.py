@@ -173,3 +173,63 @@ class TestPIIEdgeCases:
         result = agent.run("Please send the report to alice@company.org by Friday.")
         assert result.threat_found is True
 
+
+
+# -- Formats added for the camera-ready (phone separators, written dates, overlap) --
+
+def _values(result):
+    return {m.value for m in result.matched}
+
+
+class TestPIIFormats:
+
+    @pytest.mark.parametrize("text,value", [
+        ("Contact +60 219.924 4892 for details", "+60 219.924 4892"),
+        ("Reach us at +330-186-841-1608.", "+330-186-841-1608"),
+        ("Contact: (352) 9324865. Sessions start soon.", "(352) 9324865"),
+        ("For assistance call 05843-76140.", "05843-76140"),
+    ])
+    def test_phone_is_matched_whole(self, agent, text, value):
+        assert value in _values(agent.run(text))
+
+    def test_phone_is_not_split_into_fragments(self, agent):
+        values = _values(agent.run("Contact +60 219.924 4892 for details"))
+        assert values == {"+60 219.924 4892"}
+
+    @pytest.mark.parametrize("text,value", [
+        ("I was born on August 25, 1918 and live here.", "August 25, 1918"),
+        ("Date of birth: 4th April 1990.", "4th April 1990"),
+        ("DOB 1952-09-28T21:31:54.180Z on file.", "1952-09-28T21:31:54.180Z"),
+    ])
+    def test_written_and_iso_dates(self, agent, text, value):
+        assert value in _values(agent.run(text))
+
+    def test_account_number_value_excludes_keyword(self, agent):
+        values = _values(agent.run("Please credit account: 46281517 today."))
+        assert "46281517" in values
+        assert not any("account" in v.lower() for v in values)
+
+    def test_account_keyword_without_number_is_not_pii(self, agent):
+        assert agent.run("Your account information is required.").threat_found is False
+
+    def test_bare_six_digit_number_is_not_a_pincode(self, agent):
+        result = agent.run("The invoice total is 305139 rupees.")
+        assert "pincode_india" not in {m.pii_type for m in result.matched}
+
+    def test_pincode_with_context_is_detected(self, agent):
+        result = agent.run("Delivery address PIN code: 560001, Bengaluru.")
+        assert "560001" in _values(result)
+
+
+class TestPIIDatasetProfile:
+
+    def test_bare_account_number_needs_profile(self, monkeypatch):
+        text = "Please find 45224502 as a reference."
+        monkeypatch.delenv("SEMANTIC_FIREWALL_PII_PROFILE", raising=False)
+        assert "45224502" not in _values(PIIDetectorAgent().run(text))
+        monkeypatch.setenv("SEMANTIC_FIREWALL_PII_PROFILE", "ai4privacy")
+        assert "45224502" in _values(PIIDetectorAgent().run(text))
+
+    def test_swiss_style_ssn_in_profile(self, monkeypatch):
+        monkeypatch.setenv("SEMANTIC_FIREWALL_PII_PROFILE", "ai4privacy")
+        assert "75635653663" in _values(PIIDetectorAgent().run("Your SSN 75635653663 is on file."))

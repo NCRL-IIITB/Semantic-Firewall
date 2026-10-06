@@ -1,0 +1,50 @@
+{
+  "n": 942,
+  "n_attack": 552,
+  "tp": 441,
+  "fp": 85,
+  "tn": 305,
+  "fn": 111,
+  "precision": 0.8384030418250951,
+  "recall": 0.7989130434782609,
+  "f1": 0.8181818181818181,
+  "accuracy": 0.7919320594479831,
+  "fpr": 0.21794871794871795,
+  "fnr": 0.20108695652173914,
+  "f1_ci95": [
+    0.7927357202153015,
+    0.8417158456069072
+  ],
+  "fpr_ci95": [
+    0.17771748643444774,
+    0.2588855264870493
+  ],
+  "recall_ci95": [
+    0.765266320555966,
+    0.8318792965993151
+  ],
+  "latency_mean_ms": 344.7633806793993,
+  "latency_p50_ms": 283.61265000057756,
+  "latency_p95_ms": 713.7756750004884,
+  "latency_p99_ms": 1938.6958309996055,
+  "n_llm_failed": 0,
+  "n_errors": 0,
+  "baseline": {
+    "kind": "hf",
+    "model": "leolee99/PIGuard",
+    "temperature": 0.0,
+    "prompt": null
+  },
+  "protocol": {
+    "dataset": "neuralchemy",
+    "split": "test"
+  },
+  "meta": {
+    "timestamp_utc": "2026-10-04T13:42:53.932870+00:00",
+    "python": "3.13.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "cpu_count": 18,
+    "code_fingerprint": "c14f6a2af17921ab"
+  }
+}

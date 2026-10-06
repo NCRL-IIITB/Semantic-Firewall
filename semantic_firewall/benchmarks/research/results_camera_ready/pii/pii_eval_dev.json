@@ -1,0 +1,138 @@
+{
+  "dataset": "ai4privacy/pii-masking-200k (train, all languages)",
+  "part": "dev",
+  "profile": "default",
+  "rows": 41853,
+  "ground_truth_entities_target_types": 26796,
+  "legacy": {
+    "tp": 23108,
+    "fp": 10768,
+    "fn": 3688,
+    "precision": 0.6821348447278309,
+    "recall": 0.8623675175399313,
+    "f1": 0.7617352320675105
+  },
+  "type_mapped": {
+    "tp": 23057,
+    "fp": 736,
+    "fn": 3688,
+    "precision": 0.9690665321733283,
+    "recall": 0.8621050663675454,
+    "f1": 0.9124619098500139,
+    "out_of_scope_true_pii": 7740
+  },
+  "per_type_recall": {
+    "ACCOUNTNUMBER": {
+      "tp": 907,
+      "fn": 1611,
+      "recall": 0.3602065131056394
+    },
+    "CREDITCARDCVV": {
+      "tp": 389,
+      "fn": 421,
+      "recall": 0.4802469135802469
+    },
+    "CREDITCARDNUMBER": {
+      "tp": 2519,
+      "fn": 8,
+      "recall": 0.9968341907400079
+    },
+    "DOB": {
+      "tp": 1741,
+      "fn": 914,
+      "recall": 0.6557438794726931
+    },
+    "EMAIL": {
+      "tp": 3576,
+      "fn": 2,
+      "recall": 0.9994410285075461
+    },
+    "IBAN": {
+      "tp": 1992,
+      "fn": 0,
+      "recall": 1.0
+    },
+    "IPV4": {
+      "tp": 2380,
+      "fn": 8,
+      "recall": 0.9966499162479062
+    },
+    "IPV6": {
+      "tp": 2311,
+      "fn": 8,
+      "recall": 0.9965502371711945
+    },
+    "MAC": {
+      "tp": 1081,
+      "fn": 0,
+      "recall": 1.0
+    },
+    "PHONENUMBER": {
+      "tp": 2207,
+      "fn": 126,
+      "recall": 0.9459922846120874
+    },
+    "SSN": {
+      "tp": 1651,
+      "fn": 558,
+      "recall": 0.7473970122227253
+    },
+    "ZIPCODE": {
+      "tp": 2354,
+      "fn": 32,
+      "recall": 0.9865884325230512
+    }
+  },
+  "per_language_type_mapped": {
+    "de": {
+      "rows": 10564,
+      "tp": 5660,
+      "fp": 188,
+      "fn": 1080,
+      "precision": 0.9678522571819426,
+      "recall": 0.8397626112759644,
+      "f1": 0.8992691452176677
+    },
+    "en": {
+      "rows": 8701,
+      "tp": 4980,
+      "fp": 155,
+      "fn": 528,
+      "precision": 0.9698149951314509,
+      "recall": 0.9041394335511983,
+      "f1": 0.9358263647467819
+    },
+    "fr": {
+      "rows": 12391,
+      "tp": 6781,
+      "fp": 198,
+      "fn": 1175,
+      "precision": 0.9716291732339877,
+      "recall": 0.8523127199597788,
+      "f1": 0.9080682959491128
+    },
+    "it": {
+      "rows": 10197,
+      "tp": 5636,
+      "fp": 195,
+      "fn": 905,
+      "precision": 0.9665580517921454,
+      "recall": 0.8616419507720532,
+      "f1": 0.9110895570643389
+    }
+  },
+  "latency_ms": {
+    "mean": 0.27728942250317373,
+    "p50": 0.24979999943752773,
+    "p95": 0.49140000191982836,
+    "p99": 0.7650000006833579
+  },
+  "meta": {
+    "timestamp_utc": "2026-10-05T18:38:46.826617+00:00",
+    "python": "3.13.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "cpu_count": 18,
+    "code_fingerprint": "aaaa77552d9ad905"
+  }
+}

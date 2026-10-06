@@ -224,6 +224,39 @@ def test_orchestrator_agent_timeout_marks_detector_unavailable():
     assert decision.degraded is True
 
 
+class LLMCallFailedAgent(CleanAgent):
+    """Mimics an LLM detector whose API call raised: no matches, llm_parse_status=call_failed."""
+
+    def run(self, text: str, **kwargs):
+        result = super().run(text, **kwargs)
+        result.meta = {"llm_called": True, "llm_parse_status": "call_failed", "llm_error": "402 insufficient credit"}
+        return result
+
+
+def test_orchestrator_llm_call_failure_is_fail_closed():
+    db_path = _tmp_file("tmp_audit", ".db")
+    orchestrator = SemanticFirewallOrchestrator(db_path=str(db_path))
+    orchestrator.agents = {
+        "PII Detector": CleanAgent("PII Detector", "PII"),
+        "Secrets Detector": CleanAgent("Secrets Detector", "SECRET"),
+        "Abuse Detector": CleanAgent("Abuse Detector", "ABUSE"),
+        "Threat Intel Detector": CleanAgent("Threat Intel Detector", "THREAT_INTEL"),
+        "Custom Rules Detector": CleanAgent("Custom Rules Detector", "CUSTOM_RULE"),
+        "Injection Detector": CleanAgent("Injection Detector", "INJECTION"),
+        "Unsafe Content Detector": LLMCallFailedAgent("Unsafe Content Detector", "UNSAFE_CONTENT"),
+    }
+    orchestrator.llm_gate_enabled = False
+
+    decision = orchestrator.analyze("Tell me something about chemistry.")
+
+    unsafe = next(result for result in decision.agent_results if result.agent_name == "Unsafe Content Detector")
+    assert unsafe.threat_type == "SYSTEM_UNAVAILABLE"
+    assert unsafe.agent_available is False
+    assert unsafe.meta["error_type"] == "llm_call_failed"
+    assert decision.action == "FLAG"
+    assert decision.degraded is True
+
+
 def test_custom_rule_triggers_on_output_scan():
     db_path = _tmp_file("tmp_audit", ".db")
     rules_path = _tmp_file("tmp_rules", ".json")

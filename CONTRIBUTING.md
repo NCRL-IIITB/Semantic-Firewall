@@ -17,7 +17,7 @@ pip install -e .[dev]
 
 Optional `.env` values for full detector behavior:
 
-- `GROQ_API_KEY`
+- `OPENROUTER_API_KEY` (LLM-assisted detectors; see `.env.example`)
 - Alerting variables (see README)
 
 ## 2) Run The Project

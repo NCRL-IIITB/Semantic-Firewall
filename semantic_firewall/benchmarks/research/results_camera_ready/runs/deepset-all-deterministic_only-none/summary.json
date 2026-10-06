@@ -1,0 +1,84 @@
+{
+  "n": 662,
+  "n_attack": 263,
+  "tp": 36,
+  "fp": 2,
+  "tn": 397,
+  "fn": 227,
+  "precision": 0.9473684210526315,
+  "recall": 0.13688212927756654,
+  "f1": 0.239202657807309,
+  "accuracy": 0.6540785498489426,
+  "fpr": 0.005012531328320802,
+  "fnr": 0.8631178707224335,
+  "f1_ci95": [
+    0.17920138147119558,
+    0.3036345406692568
+  ],
+  "fpr_ci95": [
+    0.0,
+    0.012757561250721378
+  ],
+  "recall_ci95": [
+    0.09923664122137404,
+    0.18015466054842993
+  ],
+  "latency_mean_ms": 9.141277945619334,
+  "latency_p50_ms": 8.1755,
+  "latency_p95_ms": 13.883600000000001,
+  "latency_p99_ms": 22.52970999999998,
+  "resolution_stage_counts": {
+    "deterministic": 662
+  },
+  "llm_call_rate": 0.0,
+  "n_llm_failed": 0,
+  "n_errors": 0,
+  "config": {
+    "name": "deterministic_only",
+    "description": "Regex pre-screen + deterministic detectors; no cache, no LLM.",
+    "uses_llm": false
+  },
+  "protocol": {
+    "dataset": "deepset",
+    "split": "all",
+    "cache": "none",
+    "seeded_entries": 0,
+    "cache_size_after": 0,
+    "cache_stats": {
+      "threat_queries": 0,
+      "threat_hits": 0,
+      "allowlist_queries": 0,
+      "allowlist_hits": 0,
+      "writes": 0,
+      "writes_rejected": 0,
+      "evictions": 0
+    },
+    "workers": 1
+  },
+  "env": {
+    "SEMANTIC_FIREWALL_CACHE_TTL_SEC": "0",
+    "SEMANTIC_FIREWALL_AUDIT_ENABLED": "0",
+    "SEMANTIC_FIREWALL_DISABLE_LLM_DETECTORS": "1",
+    "SEMANTIC_FIREWALL_LLM_GATE_ENABLED": "1",
+    "SEMANTIC_FIREWALL_LLM_GATE_THRESHOLD": "1.0",
+    "SEMANTIC_FIREWALL_EARLY_EXIT_ON_BLOCK": "1",
+    "SEMANTIC_FIREWALL_DISABLED_AGENTS": "",
+    "SEMANTIC_FIREWALL_SEMANTIC_CACHE_ENABLED": "0",
+    "SEMANTIC_FIREWALL_CACHE_SIM_THRESHOLD": "0.90",
+    "SEMANTIC_FIREWALL_CACHE_WRITEBACK": "1",
+    "SEMANTIC_FIREWALL_CACHE_WRITEBACK_REQUIRE_LLM": "1",
+    "SEMANTIC_FIREWALL_CACHE_WRITEBACK_MIN_CONFIDENCE": "0.85",
+    "SEMANTIC_FIREWALL_LLM_AGENT_REGEX_ENABLED": "1",
+    "SEMANTIC_FIREWALL_ENSEMBLE_ENABLED": "1",
+    "SEMANTIC_FIREWALL_ALLOWLIST_MODE": "skip_llm",
+    "SEMANTIC_FIREWALL_SEMANTIC_CACHE_PATH": "C:\\Users\\Aksha\\OneDrive\\Desktop\\Semantic-Firewall-main\\Semantic-Firewall-main\\semantic_firewall\\benchmarks\\research\\results_camera_ready\\_work\\caches\\deepset-all-deterministic_only-none"
+  },
+  "meta": {
+    "timestamp_utc": "2026-10-05T19:22:10.920867+00:00",
+    "python": "3.13.7",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "processor": "Intel64 Family 6 Model 170 Stepping 4, GenuineIntel",
+    "cpu_count": 18,
+    "code_fingerprint": "284b00f824a510f5"
+  }
+}
